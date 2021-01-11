@@ -904,6 +904,28 @@
         <version>${project.version}</version>
       </dependency>
 
+      <!-- HTML Form Generation -->
+      <dependency>
+        <groupId>org.kie.kogito</groupId>
+        <artifactId>kogito-html-form-generator-api</artifactId>
+        <version>${project.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>org.kie.kogito</groupId>
+        <artifactId>kogito-html-form-generator-jackson</artifactId>
+        <version>${project.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>org.kie.kogito</groupId>
+        <artifactId>kogito-html-form-generator-template</artifactId>
+        <version>${project.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>org.kie.kogito</groupId>
+        <artifactId>kogito-html-form-generator-swagger-client</artifactId>
+        <version>${project.version}</version>
+      </dependency>
+
       <!-- drools -->
       <dependency>
         <groupId>org.kie.kogito</groupId>
