@@ -15,8 +15,8 @@
  */
 package org.kie.kogito.addons.quarkus.knative.serving.customfunctions;
 
-import javax.enterprise.context.ApplicationScoped;
-import javax.inject.Inject;
+import jakarta.enterprise.context.ApplicationScoped;
+import jakarta.inject.Inject;
 
 @ApplicationScoped
 class KnativeServiceRequestClientResolver {
