@@ -25,6 +25,7 @@
     <version.org.springframework.cloud.kubernetes.fabric8>3.0.2</version.org.springframework.cloud.kubernetes.fabric8>
     <!-- CVE-2022-25857: Upgrading snakeyaml until we upgrade to Spring Boot 3.x -->
     <!-- See: https://github.com/spring-projects/spring-boot/issues/32221 -->
+    <version.org.springframework.security>1.0.2</version.org.springframework.security>
   </properties>
   
   <dependencyManagement>
@@ -61,6 +62,11 @@
         <groupId>org.springframework.cloud</groupId>
         <artifactId>spring-cloud-starter-kubernetes-fabric8</artifactId>
         <version>${version.org.springframework.cloud.kubernetes.fabric8}</version>
+      </dependency>
+      <dependency>
+        <groupId>org.springframework.security</groupId>
+        <artifactId>spring-security-oauth2-authorization-server</artifactId>
+        <version>${version.org.springframework.security}</version>
       </dependency>
     </dependencies>
   </dependencyManagement>
