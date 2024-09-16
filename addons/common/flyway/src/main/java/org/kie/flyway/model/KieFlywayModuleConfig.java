@@ -24,42 +24,25 @@ import java.util.TreeMap;
 
 public class KieFlywayModuleConfig {
 
-    private String module;
-    private final Map<String, String> locations = new TreeMap<>(String.CASE_INSENSITIVE_ORDER);
-    private String defaultLocation;
+    public static final String DEFAULT_DB = "default";
 
-    public KieFlywayModuleConfig() {
-    }
+    private final String module;
+    private final Map<String, String[]> locations = new TreeMap<>(String.CASE_INSENSITIVE_ORDER);
 
-    public KieFlywayModuleConfig(String module, Map<String, String> locations, String defaultLocation) {
+    public KieFlywayModuleConfig(String module) {
         this.module = module;
-        this.locations.putAll(locations);
-        this.defaultLocation = defaultLocation;
     }
 
     public String getModule() {
         return module;
     }
 
-    public void setModule(String module) {
-        this.module = module;
+    public void addDBScriptLocation(String dbType, String[] locations) {
+        this.locations.put(dbType, locations);
     }
 
-    public Map<String, String> getLocations() {
-        return locations;
+    public String[] getDBScriptLocations(String dbType) {
+        return this.locations.getOrDefault(dbType, locations.get(DEFAULT_DB));
     }
 
-    public void setLocations(Map<String, String> locations) {
-        this.locations.clear();
-        this.locations.putAll(locations);
-        ;
-    }
-
-    public String getDefaultLocation() {
-        return defaultLocation;
-    }
-
-    public void setDefaultLocation(String defaultLocation) {
-        this.defaultLocation = defaultLocation;
-    }
 }

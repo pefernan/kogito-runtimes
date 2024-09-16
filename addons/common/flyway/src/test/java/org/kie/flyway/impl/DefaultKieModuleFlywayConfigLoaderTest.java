@@ -17,15 +17,24 @@
  * under the License.
  */
 
-package org.kie.flyway;
+package org.kie.flyway.impl;
 
-import java.io.File;
+import org.assertj.core.api.Assertions;
+import org.junit.jupiter.api.Test;
+import org.kie.flyway.model.KieFlywayModuleConfig;
 
-public interface KieFlywayConstants {
+import java.util.List;
 
-    String KIE_FLYWAY_ENABLED_PROPERTY = "kie.flyway.enabled";
+public class DefaultKieModuleFlywayConfigLoaderTest {
 
-    String KIE_FLYWAY_DESCRIPTOR_FILE_NAME = "kie-flyway.properties";
+    private DefaultKieModuleFlywayConfigLoader flywayConfigLoader;
 
-    String KIE_FLYWAY_DESCRIPTOR_FILE_LOCATION = "META-INF" + File.separator + KIE_FLYWAY_DESCRIPTOR_FILE_NAME;
+    @Test
+    public void testDefaultLoading() {
+        flywayConfigLoader = new DefaultKieModuleFlywayConfigLoader();
+
+        List<KieFlywayModuleConfig> configs = flywayConfigLoader.loadModuleConfigs();
+
+        Assertions.assertThat(configs).hasSize(1);
+    }
 }

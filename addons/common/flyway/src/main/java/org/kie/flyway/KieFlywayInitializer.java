@@ -53,7 +53,8 @@ public class KieFlywayInitializer {
     }
 
     private void runFlyway(KieFlywayModuleConfig config) {
-        String locations = config.getLocations().getOrDefault(databaseType, config.getDefaultLocation());
+        LOGGER.debug("Running Flyway for module: {}", config.getModule());
+        String[] locations = config.getDBScriptLocations(databaseType);
 
         if (Objects.isNull(locations)) {
             LOGGER.warn("Cannot run Flyway migration for module `{}`, cannot find SQL Script locations for db `{}`", config.getModule(), databaseType);
@@ -66,9 +67,11 @@ public class KieFlywayInitializer {
                 .baselineVersion(KIE_FLYWAY_BASELINE_VERSION)
                 .baselineDescription(KIE_FLYWAY_BASELINE_MESSAGE_TEMPLATE.formatted(config.getModule()))
                 .baselineOnMigrate(true)
-                .locations(locations.split(","))
+                .locations(locations)
                 .load()
                 .migrate();
+
+        LOGGER.debug("Flyway migration complete.");
     }
 
     public static class Builder {

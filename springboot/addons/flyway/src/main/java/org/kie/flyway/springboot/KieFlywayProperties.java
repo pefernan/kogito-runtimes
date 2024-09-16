@@ -21,7 +21,7 @@ package org.kie.flyway.springboot;
 
 import org.springframework.boot.context.properties.ConfigurationProperties;
 
-@ConfigurationProperties(prefix = "org.kie.flyway")
+@ConfigurationProperties(prefix = "kie.flyway")
 public class KieFlywayProperties {
     private boolean enabled = true;
     private String dataSource = "dataSource";

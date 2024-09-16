@@ -37,7 +37,7 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Import;
 
 @AutoConfiguration(after = { DataSourceAutoConfiguration.class })
-@ConditionalOnProperty(prefix = "org.kie.flyway", name = "enabled", havingValue = "true")
+@ConditionalOnProperty(prefix = "kie.flyway", name = "enabled", havingValue = "true")
 @ConditionalOnClass(Flyway.class)
 @Import(DatabaseInitializationDependencyConfigurer.class)
 @EnableConfigurationProperties(KieFlywayProperties.class)

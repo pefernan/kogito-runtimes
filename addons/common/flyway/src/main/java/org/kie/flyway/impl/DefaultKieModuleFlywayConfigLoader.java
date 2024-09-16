@@ -19,25 +19,37 @@
 
 package org.kie.flyway.impl;
 
+import java.io.File;
 import java.io.IOException;
+import java.io.InputStream;
 import java.net.URL;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.Properties;
 
-import org.kie.flyway.KieFlywayConstants;
+import org.kie.flyway.KieFlywayException;
 import org.kie.flyway.KieModuleFlywayConfigLoader;
 import org.kie.flyway.model.KieFlywayModuleConfig;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.fasterxml.jackson.dataformat.javaprop.JavaPropsMapper;
-
 public class DefaultKieModuleFlywayConfigLoader implements KieModuleFlywayConfigLoader {
+
+    String KIE_FLYWAY_DESCRIPTOR_FILE_NAME = "kie-flyway.properties";
+
+    String KIE_FLYWAY_DESCRIPTOR_FILE_LOCATION = "META-INF" + File.separator + KIE_FLYWAY_DESCRIPTOR_FILE_NAME;
+
+    public static final String MODULE_KEY = "module";
+    public static final String LOCATIONS_KEY = "locations";
+
     private static final Logger LOGGER = LoggerFactory.getLogger(DefaultKieModuleFlywayConfigLoader.class);
 
-    private ClassLoader classLoader;
+    private final ClassLoader classLoader;
+
+    DefaultKieModuleFlywayConfigLoader() {
+        this(Thread.currentThread().getContextClassLoader());
+    }
 
     public DefaultKieModuleFlywayConfigLoader(ClassLoader classLoader) {
         this.classLoader = classLoader;
@@ -46,28 +58,51 @@ public class DefaultKieModuleFlywayConfigLoader implements KieModuleFlywayConfig
     @Override
     public List<KieFlywayModuleConfig> loadModuleConfigs() {
         return Optional.ofNullable(this.classLoader).orElse(this.getClass().getClassLoader())
-                .resources(KieFlywayConstants.KIE_FLYWAY_DESCRIPTOR_FILE_LOCATION)
+                .resources(KIE_FLYWAY_DESCRIPTOR_FILE_LOCATION)
                 .map(this::toModuleFlywayConfig)
                 .filter(Objects::nonNull)
                 .toList();
     }
 
-    public KieFlywayModuleConfig toModuleFlywayConfig(URL resourceUrl) {
+    private KieFlywayModuleConfig toModuleFlywayConfig(URL resourceUrl) {
         LOGGER.debug("Loading configuration from {}", resourceUrl);
-        JavaPropsMapper mapper = new JavaPropsMapper();
 
-        try {
+        try (InputStream inputStream = resourceUrl.openStream()){
             Properties properties = new Properties();
-            properties.load(resourceUrl.openStream());
+            properties.load(inputStream);
 
-            KieFlywayModuleConfig module = mapper.readPropertiesAs(properties, KieFlywayModuleConfig.class);
+            String moduleName = properties.getProperty(MODULE_KEY);
+
+            if (Objects.isNull(moduleName)) {
+                LOGGER.warn("Could not load module name from file {}", resourceUrl);
+                throw new KieFlywayException("Could not load module name from " + resourceUrl.getPath());
+            }
+
+            LOGGER.debug("Loading Kie Flyway Module {}", moduleName);
+
+            KieFlywayModuleConfig module = new KieFlywayModuleConfig(moduleName);
+
+            properties.keySet()
+                    .stream()
+                    .map(String::valueOf)
+                    .filter(key -> key.startsWith(LOCATIONS_KEY))
+                    .forEach(key -> {
+                        LOGGER.debug("Loading location: {}", key);
+                        String[] splitKey = key.split("\\.");
+                        if (splitKey.length != 2) {
+                            LOGGER.warn("Cannot load location in module {}: Wrong format {}", moduleName, key);
+                            return;
+                        }
+                        String[] locations = properties.getProperty(key).split(",");
+                        module.addDBScriptLocation(splitKey[1], locations);
+                    });
 
             LOGGER.debug("Successfully loaded configuration for module {}", module.getModule());
 
             return module;
         } catch (IOException e) {
             LOGGER.warn("Could not load configuration from {}", resourceUrl, e);
-            throw new RuntimeException("Could not load ModuleFlywayConfig", e);
+            throw new KieFlywayException("Could not load ModuleFlywayConfig", e);
         }
     }
 }
