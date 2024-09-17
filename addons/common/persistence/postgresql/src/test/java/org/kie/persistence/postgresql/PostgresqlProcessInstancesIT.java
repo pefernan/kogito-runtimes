@@ -22,7 +22,6 @@ import java.util.Collections;
 import java.util.Optional;
 
 import org.drools.io.ClassPathResource;
-import org.flywaydb.core.Flyway;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
@@ -76,6 +75,8 @@ class PostgresqlProcessInstancesIT {
     public static void startContainerAndPublicPortIsAvailable() {
         container.start();
 
+        client = client();
+
         PGSimpleDataSource ds = new PGSimpleDataSource();
         ds.setUrl(container.getJdbcUrl());
         ds.setUser(container.getUsername());
@@ -106,6 +107,9 @@ class PostgresqlProcessInstancesIT {
         return process;
     }
 
+    private static PgPool client() {
+        return PgPool.pool(container.getReactiveUrl());
+    }
 
     @Test
     void testBasicFlow() {
