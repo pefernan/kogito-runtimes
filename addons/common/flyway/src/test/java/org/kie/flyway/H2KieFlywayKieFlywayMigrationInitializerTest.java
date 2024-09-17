@@ -19,11 +19,10 @@
 
 package org.kie.flyway;
 
-import java.util.Collection;
+public class H2KieFlywayKieFlywayMigrationInitializerTest extends AbstractH2KieFlywayKieFlywayMigrationInitializerTest {
 
-import org.kie.flyway.model.KieFlywayModuleConfig;
-
-public interface KieModuleFlywayConfigLoader {
-
-    Collection<KieFlywayModuleConfig> loadModuleConfigs();
+    @Override
+    protected String getDbType() {
+        return "H2";
+    }
 }

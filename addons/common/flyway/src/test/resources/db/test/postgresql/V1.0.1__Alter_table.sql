@@ -17,13 +17,4 @@
  * under the License.
  */
 
-package org.kie.flyway;
-
-import java.util.Collection;
-
-import org.kie.flyway.model.KieFlywayModuleConfig;
-
-public interface KieModuleFlywayConfigLoader {
-
-    Collection<KieFlywayModuleConfig> loadModuleConfigs();
-}
+alter table test_table add column dbtype varchar(128);

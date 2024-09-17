@@ -16,7 +16,8 @@
  * specific language governing permissions and limitations
  * under the License.
  */
-package org.kie.persistence.jdbc;
+
+package org.kie.flyway;
 
 import javax.sql.DataSource;
 
@@ -27,7 +28,7 @@ import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
 
 @Testcontainers
-public class PostgreSqlProcessInstancesIT extends AbstractProcessInstancesIT {
+public class PostgreSQLKieFlywayInitializerTest extends AbstractKieFlywayInitializerTest {
 
     @Container
     private final static KogitoPostgreSqlContainer PG_CONTAINER = new KogitoPostgreSqlContainer();
@@ -39,10 +40,13 @@ public class PostgreSqlProcessInstancesIT extends AbstractProcessInstancesIT {
         PG_DATA_SOURCE.setUrl(PG_CONTAINER.getJdbcUrl());
         PG_DATA_SOURCE.setUser(PG_CONTAINER.getUsername());
         PG_DATA_SOURCE.setPassword(PG_CONTAINER.getPassword());
-        initMigration(PG_DATA_SOURCE, "postgresql");
     }
 
     protected DataSource getDataSource() {
-        return PG_DATA_SOURCE;
+        return PostgreSQLKieFlywayInitializerTest.PG_DATA_SOURCE;
+    }
+
+    protected String getDbType() {
+        return "postgresql";
     }
 }

@@ -19,7 +19,8 @@
 
 package org.kie.flyway;
 
-import java.util.Objects;
+import java.util.*;
+import java.util.stream.Collectors;
 
 import javax.sql.DataSource;
 
@@ -29,12 +30,14 @@ import org.kie.flyway.model.KieFlywayModuleConfig;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import static java.util.stream.Collectors.groupingBy;
+
 public class KieFlywayInitializer {
     private static final String KIE_FLYWAY_BASELINE_VERSION = "0.0";
 
     private static final String KIE_FLYWAY_BASELINE_MESSAGE_TEMPLATE = "Kie Flyway Baseline - %s";
 
-    private static final String KIE_FLYWAY_INDEX_TABLE_INDEX_TEMPLATE = "kie-flyway-history-%s";
+    private static final String KIE_FLYWAY_INDEX_TABLE_INDEX_TEMPLATE = "kie_flyway_history_%s";
 
     private static final Logger LOGGER = LoggerFactory.getLogger(KieFlywayInitializer.class);
 
@@ -49,7 +52,28 @@ public class KieFlywayInitializer {
     }
 
     public void migrate() {
+        LOGGER.debug("Starting Kie Flyway migration.");
+        Collection<KieFlywayModuleConfig> configs = configLoader.loadModuleConfigs();
+
+        checkDuplicatedModuleConfigs(configs);
+
+        LOGGER.debug("Found {} configured Kie Flyway modules.", configs.size());
+
         this.configLoader.loadModuleConfigs().forEach(this::runFlyway);
+    }
+
+    private void checkDuplicatedModuleConfigs(Collection<KieFlywayModuleConfig> configs) {
+        List<String> duplicatedModules = configs.stream()
+                .collect(groupingBy(kieFlywayModuleConfig -> kieFlywayModuleConfig.getModule().toLowerCase(), Collectors.counting()))
+                .entrySet()
+                .stream().filter(entry -> entry.getValue() > 1)
+                .map(Map.Entry::getKey)
+                .toList();
+
+        if (!duplicatedModules.isEmpty()) {
+            LOGGER.warn("Cannot run Kie Flyway migration: Duplicated modules found `{}`", String.join(", ", duplicatedModules));
+            throw new KieFlywayException("Cannot run Kie Flyway migration: Duplicated Modules found " + String.join(", ", duplicatedModules));
+        }
     }
 
     private void runFlyway(KieFlywayModuleConfig config) {
@@ -62,11 +86,11 @@ public class KieFlywayInitializer {
         }
 
         Flyway.configure()
-                .table(KIE_FLYWAY_INDEX_TABLE_INDEX_TEMPLATE.formatted(config.getModule()))
+                .table(KIE_FLYWAY_INDEX_TABLE_INDEX_TEMPLATE.formatted(config.getModule().replaceAll("[^A-Za-z0-9]", "_")).toLowerCase())
                 .dataSource(dataSource)
+                .baselineOnMigrate(true)
                 .baselineVersion(KIE_FLYWAY_BASELINE_VERSION)
                 .baselineDescription(KIE_FLYWAY_BASELINE_MESSAGE_TEMPLATE.formatted(config.getModule()))
-                .baselineOnMigrate(true)
                 .locations(locations)
                 .load()
                 .migrate();
@@ -113,7 +137,8 @@ public class KieFlywayInitializer {
             }
 
             if (Objects.isNull(configLoader)) {
-                throw new KieFlywayException("Cannot create KieFlywayInitializer migration, no `configLoader` configured, please configure it or either a Classloader to fetch the application config");
+                LOGGER.warn("ModuleConfigLoader not configured, falling back to default.");
+                this.configLoader = new DefaultKieModuleFlywayConfigLoader();
             }
 
             return new KieFlywayInitializer(configLoader, dataSource, databaseType);

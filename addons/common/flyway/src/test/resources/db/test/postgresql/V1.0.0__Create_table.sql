@@ -17,13 +17,9 @@
  * under the License.
  */
 
-package org.kie.flyway;
-
-import java.util.Collection;
-
-import org.kie.flyway.model.KieFlywayModuleConfig;
-
-public interface KieModuleFlywayConfigLoader {
-
-    Collection<KieFlywayModuleConfig> loadModuleConfigs();
-}
+create table test_table
+(
+    id       bigint         not null,
+    message  varchar(128)   not null,
+    constraint test_table_pkey primary key (id)
+);

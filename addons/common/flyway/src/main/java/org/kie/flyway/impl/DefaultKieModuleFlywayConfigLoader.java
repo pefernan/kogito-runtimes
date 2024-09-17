@@ -20,13 +20,9 @@
 package org.kie.flyway.impl;
 
 import java.io.File;
-import java.io.IOException;
 import java.io.InputStream;
 import java.net.URL;
-import java.util.List;
-import java.util.Objects;
-import java.util.Optional;
-import java.util.Properties;
+import java.util.*;
 
 import org.kie.flyway.KieFlywayException;
 import org.kie.flyway.KieModuleFlywayConfigLoader;
@@ -36,9 +32,9 @@ import org.slf4j.LoggerFactory;
 
 public class DefaultKieModuleFlywayConfigLoader implements KieModuleFlywayConfigLoader {
 
-    String KIE_FLYWAY_DESCRIPTOR_FILE_NAME = "kie-flyway.properties";
+    public static String KIE_FLYWAY_DESCRIPTOR_FILE_NAME = "kie-flyway.properties";
 
-    String KIE_FLYWAY_DESCRIPTOR_FILE_LOCATION = "META-INF" + File.separator + KIE_FLYWAY_DESCRIPTOR_FILE_NAME;
+    public static String KIE_FLYWAY_DESCRIPTOR_FILE_LOCATION = "META-INF" + File.separator + KIE_FLYWAY_DESCRIPTOR_FILE_NAME;
 
     public static final String MODULE_KEY = "module";
     public static final String LOCATIONS_KEY = "locations";
@@ -47,7 +43,7 @@ public class DefaultKieModuleFlywayConfigLoader implements KieModuleFlywayConfig
 
     private final ClassLoader classLoader;
 
-    DefaultKieModuleFlywayConfigLoader() {
+    public DefaultKieModuleFlywayConfigLoader() {
         this(Thread.currentThread().getContextClassLoader());
     }
 
@@ -56,18 +52,17 @@ public class DefaultKieModuleFlywayConfigLoader implements KieModuleFlywayConfig
     }
 
     @Override
-    public List<KieFlywayModuleConfig> loadModuleConfigs() {
+    public Collection<KieFlywayModuleConfig> loadModuleConfigs() {
         return Optional.ofNullable(this.classLoader).orElse(this.getClass().getClassLoader())
                 .resources(KIE_FLYWAY_DESCRIPTOR_FILE_LOCATION)
                 .map(this::toModuleFlywayConfig)
-                .filter(Objects::nonNull)
                 .toList();
     }
 
     private KieFlywayModuleConfig toModuleFlywayConfig(URL resourceUrl) {
         LOGGER.debug("Loading configuration from {}", resourceUrl);
 
-        try (InputStream inputStream = resourceUrl.openStream()){
+        try (InputStream inputStream = resourceUrl.openStream()) {
             Properties properties = new Properties();
             properties.load(inputStream);
 
@@ -90,8 +85,7 @@ public class DefaultKieModuleFlywayConfigLoader implements KieModuleFlywayConfig
                         LOGGER.debug("Loading location: {}", key);
                         String[] splitKey = key.split("\\.");
                         if (splitKey.length != 2) {
-                            LOGGER.warn("Cannot load location in module {}: Wrong format {}", moduleName, key);
-                            return;
+                            throw new KieFlywayException("Cannot load module `" + moduleName + "` config, file has wrong format");
                         }
                         String[] locations = properties.getProperty(key).split(",");
                         module.addDBScriptLocation(splitKey[1], locations);
@@ -100,7 +94,7 @@ public class DefaultKieModuleFlywayConfigLoader implements KieModuleFlywayConfig
             LOGGER.debug("Successfully loaded configuration for module {}", module.getModule());
 
             return module;
-        } catch (IOException e) {
+        } catch (Exception e) {
             LOGGER.warn("Could not load configuration from {}", resourceUrl, e);
             throw new KieFlywayException("Could not load ModuleFlywayConfig", e);
         }
