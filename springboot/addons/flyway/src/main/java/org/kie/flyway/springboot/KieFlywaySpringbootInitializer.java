@@ -20,6 +20,9 @@
 package org.kie.flyway.springboot;
 
 import java.sql.DatabaseMetaData;
+import java.util.Collection;
+import java.util.Map;
+import java.util.Objects;
 
 import javax.sql.DataSource;
 
@@ -32,44 +35,58 @@ import org.springframework.core.Ordered;
 import org.springframework.jdbc.support.JdbcUtils;
 
 public class KieFlywaySpringbootInitializer implements InitializingBean, Ordered {
-    private static final Logger log = LoggerFactory.getLogger(KieFlywaySpringbootInitializer.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(KieFlywaySpringbootInitializer.class);
 
-    private int order = 0;
-
+    private final KieFlywaySpringbootProperties properties;
     private final DataSource dataSource;
 
-    public KieFlywaySpringbootInitializer(DataSource dataSource) {
+    public KieFlywaySpringbootInitializer(KieFlywaySpringbootProperties properties, DataSource dataSource) {
+        this.properties = properties;
         this.dataSource = dataSource;
     }
 
     @Override
     public void afterPropertiesSet() {
-        if (dataSource != null) {
-            String dbType = getDataSourceType();
-            KieFlywayInitializer.Builder.get()
-                    .withClassLoader(Thread.currentThread().getContextClassLoader())
-                    .withDatasource(dataSource)
-                    .withDbType(dbType)
-                    .build()
-                    .migrate();
-        }
+        assertValue(properties, "Cannot run Kie Flyway migration: configuration is null.");
+        assertValue(dataSource, "Cannot run Kie Flyway migration: default datasource not found.");
+
+        String dbType = getDataSourceType();
+
+        assertValue(dbType, "Cannot run Kie Flyway migration: cannot determine database type.");
+
+        Collection<String> excludedModules = properties.getModules()
+                .entrySet()
+                .stream().filter(entry -> !entry.getValue().isEnabled())
+                .map(Map.Entry::getKey)
+                .toList();
+
+        KieFlywayInitializer.Builder.get()
+                .withClassLoader(Thread.currentThread().getContextClassLoader())
+                .withDatasource(dataSource)
+                .withDbType(dbType)
+                .withModuleExclusions(excludedModules)
+                .build()
+                .migrate();
     }
 
     private String getDataSourceType() {
         try {
             return JdbcUtils.extractDatabaseMetaData(dataSource, DatabaseMetaData::getDatabaseProductName);
         } catch (Exception e) {
-            log.error("Couldn't extract database product name from datasource: ", e);
+            LOGGER.error("Couldn't extract database product name from datasource ", e);
             throw new KieFlywayException("Couldn't extract database product name from datasource", e);
         }
     }
 
-    public void setOrder(int order) {
-        this.order = order;
+    private void assertValue(Object value, String message) {
+        if (Objects.isNull(value)) {
+            LOGGER.warn(message);
+            throw new KieFlywayException(message);
+        }
     }
 
     @Override
     public int getOrder() {
-        return order;
+        return 0;
     }
 }

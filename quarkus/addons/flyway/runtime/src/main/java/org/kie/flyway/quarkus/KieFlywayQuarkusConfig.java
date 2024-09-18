@@ -19,25 +19,41 @@
 
 package org.kie.flyway.quarkus;
 
-import io.quarkus.runtime.annotations.ConfigItem;
-import io.quarkus.runtime.annotations.ConfigPhase;
-import io.quarkus.runtime.annotations.ConfigRoot;
+import java.util.Map;
+
+import io.quarkus.runtime.annotations.*;
+import io.smallrye.config.ConfigMapping;
+import io.smallrye.config.WithDefault;
+import io.smallrye.config.WithDefaults;
 
 /**
  * Configuration for the Kie Flyway initializer
  */
-@ConfigRoot(prefix = "kie", name = "flyway", phase = ConfigPhase.BUILD_AND_RUN_TIME_FIXED)
-public class KieQuarkusFlywayBuildTimeConfig {
+@ConfigMapping(prefix = "kie.flyway")
+@ConfigRoot(phase = ConfigPhase.BUILD_AND_RUN_TIME_FIXED)
+public interface KieFlywayQuarkusConfig {
 
     /**
      * Enables the execution of the Flyway initializer during the application startup
      */
-    @ConfigItem(defaultValue = "false")
-    public Boolean enabled;
+    @WithDefault("false")
+    Boolean enabled();
 
     /**
-     * Name of the datasource where the Flyway initializer should run the migrations.
+     * List of {@link KieNamedModule} that allow to enable or disable a given module
+     * 
+     * @return a Map containing all the modules
      */
-    @ConfigItem(defaultValue = "<default>")
-    public String dataSource;
+    @WithDefaults
+    Map<String, KieNamedModule> modules();
+
+    @ConfigGroup
+    interface KieNamedModule {
+
+        /**
+         * Enables the execution of the Flyway initializer for a specific Kie module
+         */
+        @WithDefault("true")
+        Boolean enabled();
+    }
 }

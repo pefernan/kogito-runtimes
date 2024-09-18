@@ -19,41 +19,54 @@
 
 package org.kie.flyway.quarkus;
 
+import java.util.Collection;
+import java.util.Map;
 import java.util.Objects;
 
 import javax.sql.DataSource;
 
+import org.kie.flyway.KieFlywayException;
 import org.kie.flyway.KieFlywayInitializer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import io.quarkus.agroal.runtime.DataSources;
+import io.quarkus.arc.Arc;
 import io.quarkus.runtime.annotations.Recorder;
-
-import jakarta.enterprise.inject.spi.CDI;
 
 @Recorder
 public class KieFlywayRecorder {
 
-    private static final Logger log = LoggerFactory.getLogger(KieFlywayRecorder.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(KieFlywayRecorder.class);
 
-    public void run(String datasourceName, String dbKind) {
+    public void run(KieFlywayQuarkusConfig config, String defaultDSName, String dbKind) {
 
-        log.debug("Starting Quarkus Flyway migration in datasource `{}`", datasourceName);
-        DataSources datasources = CDI.current().select(DataSources.class).get();
+        assertValue(config, "Cannot run Kie Flyway migration: configuration is null.");
+        assertValue(dbKind, "Cannot run Kie Flyway migration: `quarkus.datasource.dbKind` is null.");
 
-        DataSource ds = datasources.getDataSource(datasourceName);
+        DataSources agroalDatasourceS = Arc.container().select(DataSources.class).get();
+        DataSource dataSource = agroalDatasourceS.getDataSource(defaultDSName);
 
-        if (Objects.isNull(ds)) {
-            log.warn("Couldn't find datasource `{}`", datasourceName);
-            return;
-        }
+        assertValue(dataSource, "Cannot run Kie Flyway migration: default datasource not found.");
+
+        Collection<String> excludedModules = config.modules()
+                .entrySet()
+                .stream().filter(entry -> !entry.getValue().enabled())
+                .map(Map.Entry::getKey)
+                .toList();
 
         KieFlywayInitializer.Builder.get()
-                .withDatasource(ds)
+                .withDatasource(dataSource)
                 .withDbType(dbKind)
                 .withClassLoader(Thread.currentThread().getContextClassLoader())
+                .withModuleExclusions(excludedModules)
                 .build().migrate();
     }
 
+    private void assertValue(Object value, String message) {
+        if (Objects.isNull(value)) {
+            LOGGER.warn(message);
+            throw new KieFlywayException(message);
+        }
+    }
 }

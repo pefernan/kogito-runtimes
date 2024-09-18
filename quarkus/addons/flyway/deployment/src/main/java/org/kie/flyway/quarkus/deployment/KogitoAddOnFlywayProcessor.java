@@ -21,8 +21,8 @@ package org.kie.flyway.quarkus.deployment;
 import java.util.List;
 import java.util.Optional;
 
+import org.kie.flyway.quarkus.KieFlywayQuarkusConfig;
 import org.kie.flyway.quarkus.KieFlywayRecorder;
-import org.kie.flyway.quarkus.KieQuarkusFlywayBuildTimeConfig;
 
 import io.quarkus.agroal.spi.JdbcDataSourceBuildItem;
 import io.quarkus.arc.deployment.BeanContainerBuildItem;
@@ -47,15 +47,15 @@ public class KogitoAddOnFlywayProcessor {
     @Record(ExecutionTime.RUNTIME_INIT)
     void runMigration(
             KieFlywayRecorder recorder,
-            KieQuarkusFlywayBuildTimeConfig config,
+            KieFlywayQuarkusConfig config,
             List<JdbcDataSourceBuildItem> jdbcDataSourceBuildItems) {
 
-        if (!config.enabled) {
+        if (!config.enabled()) {
             return;
         }
 
         Optional<JdbcDataSourceBuildItem> jdbcDataSourceOptional = jdbcDataSourceBuildItems.stream()
-                .filter(ds -> ds.getName().equals(config.dataSource))
+                .filter(JdbcDataSourceBuildItem::isDefault)
                 .findFirst();
 
         if (jdbcDataSourceOptional.isEmpty()) {
@@ -63,6 +63,6 @@ public class KogitoAddOnFlywayProcessor {
         }
 
         JdbcDataSourceBuildItem jdbcDataSource = jdbcDataSourceOptional.get();
-        recorder.run(jdbcDataSource.getName(), jdbcDataSource.getDbKind());
+        recorder.run(config, jdbcDataSource.getName(), jdbcDataSource.getDbKind());
     }
 }

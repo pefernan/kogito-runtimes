@@ -19,13 +19,14 @@
 
 package org.kie.flyway.springboot;
 
-import java.util.Map;
 import java.util.Objects;
 
 import javax.sql.DataSource;
 
 import org.flywaydb.core.Flyway;
 import org.kie.flyway.KieFlywayException;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.boot.autoconfigure.AutoConfiguration;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
@@ -40,23 +41,26 @@ import org.springframework.context.annotation.Import;
 @ConditionalOnProperty(prefix = "kie.flyway", name = "enabled", havingValue = "true")
 @ConditionalOnClass(Flyway.class)
 @Import(DatabaseInitializationDependencyConfigurer.class)
-@EnableConfigurationProperties(KieFlywayProperties.class)
+@EnableConfigurationProperties(KieFlywaySpringbootProperties.class)
 public class KieFlywaySpringbootAutoConfiguration {
 
+    private static final Logger LOGGER = LoggerFactory.getLogger(KieFlywaySpringbootAutoConfiguration.class);
+
     @Bean
-    public KieFlywaySpringbootInitializer kieFlyway(KieFlywayProperties properties, ObjectProvider<DataSource> dataSource, Map<String, DataSource> datasources) {
+    public KieFlywaySpringbootInitializer kieFlyway(KieFlywaySpringbootProperties properties, ObjectProvider<DataSource> dataSource) {
 
         if (!properties.isEnabled()) {
-            throw new KieFlywayException("Kie Flyway migrations are disabled, we shouldn't be here");
+            throw new KieFlywayException("Cannot run Kie Flyway migration: Kie Flyway migrations is disabled, we shouldn't be here.");
         }
 
-        DataSource ds = datasources.get(properties.getDataSource());
+        DataSource ds = dataSource.getIfAvailable();
 
         if (Objects.isNull(ds)) {
-            throw new KieFlywayException("Couldn't find datasource `" + properties.getDataSource() + "`");
+            LOGGER.warn("Cannot run Kie Flyway migration: default datasource not found.");
+            throw new KieFlywayException("Cannot run Kie Flyway migration: default datasource not found.");
         }
 
-        return new KieFlywaySpringbootInitializer(ds);
+        return new KieFlywaySpringbootInitializer(properties, ds);
     }
 
 }

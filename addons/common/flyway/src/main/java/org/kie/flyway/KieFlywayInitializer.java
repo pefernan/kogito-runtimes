@@ -44,11 +44,13 @@ public class KieFlywayInitializer {
     private final KieModuleFlywayConfigLoader configLoader;
     private final DataSource dataSource;
     private final String databaseType;
+    private final List<String> moduleExclusions;
 
-    private KieFlywayInitializer(KieModuleFlywayConfigLoader configLoader, DataSource dataSource, String databaseType) {
+    private KieFlywayInitializer(KieModuleFlywayConfigLoader configLoader, DataSource dataSource, String databaseType, Collection<String> moduleExclusions) {
         this.configLoader = configLoader;
         this.dataSource = dataSource;
         this.databaseType = databaseType;
+        this.moduleExclusions = new ArrayList<>(moduleExclusions);
     }
 
     public void migrate() {
@@ -78,6 +80,12 @@ public class KieFlywayInitializer {
 
     private void runFlyway(KieFlywayModuleConfig config) {
         LOGGER.debug("Running Flyway for module: {}", config.getModule());
+
+        if (moduleExclusions.contains(config.getModule())) {
+            LOGGER.debug("Skipping module: {}", config.getModule());
+            return;
+        }
+
         String[] locations = config.getDBScriptLocations(databaseType);
 
         if (Objects.isNull(locations)) {
@@ -102,6 +110,7 @@ public class KieFlywayInitializer {
         private KieModuleFlywayConfigLoader configLoader;
         private DataSource dataSource;
         private String databaseType;
+        private List<String> moduleExclusions = new ArrayList<>();
 
         public static Builder get() {
             return new Builder();
@@ -127,6 +136,11 @@ public class KieFlywayInitializer {
             return this;
         }
 
+        public Builder withModuleExclusions(Collection<String> moduleExclusions) {
+            this.moduleExclusions.addAll(moduleExclusions);
+            return this;
+        }
+
         public KieFlywayInitializer build() {
             if (Objects.isNull(dataSource)) {
                 throw new KieFlywayException("Cannot create KieFlywayInitializer migration, dataSource is null.");
@@ -141,7 +155,7 @@ public class KieFlywayInitializer {
                 this.configLoader = new DefaultKieModuleFlywayConfigLoader();
             }
 
-            return new KieFlywayInitializer(configLoader, dataSource, databaseType);
+            return new KieFlywayInitializer(configLoader, dataSource, databaseType, moduleExclusions);
         }
     }
 
