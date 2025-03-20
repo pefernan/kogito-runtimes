@@ -25,7 +25,7 @@
   <parent>
     <groupId>org.kie.kogito</groupId>
     <artifactId>kogito-quarkus-integration-tests</artifactId>
-    <version>999-SNAPSHOT</version>
+    <version>9.2.0-ibm-0004</version>
   </parent>
   <artifactId>integration-tests-quarkus-processes-reactive</artifactId>
   <name>Kogito :: Integration Tests :: Quarkus :: Processes :: Reactive</name>
@@ -41,7 +41,7 @@
       <dependency>
         <groupId>org.kie.kogito</groupId>
         <artifactId>kogito-quarkus-bom</artifactId>
-        <version>${project.version}</version>
+        <version>9.2.0-ibm-0004</version>
         <type>pom</type>
         <scope>import</scope>
       </dependency>
@@ -117,7 +117,7 @@
     <dependency>
       <groupId>org.jbpm</groupId>
       <artifactId>jbpm-quarkus-deployment</artifactId>
-      <version>${project.version}</version>
+      <version>9.2.0-ibm-0004</version>
       <type>pom</type>
       <scope>test</scope>
       <exclusions>
@@ -130,7 +130,7 @@
     <dependency>
       <groupId>org.kie</groupId>
       <artifactId>kie-addons-quarkus-process-svg-deployment</artifactId>
-      <version>${project.version}</version>
+      <version>9.2.0-ibm-0004</version>
       <type>pom</type>
       <scope>test</scope>
       <exclusions>
@@ -173,7 +173,7 @@
         <configuration>
           <systemPropertyVariables combine.children="append">
             <java.util.logging.manager>org.jboss.logmanager.LogManager</java.util.logging.manager>
-            <kogito.version>${project.version}</kogito.version>
+            <kogito.version>9.2.0-ibm-0004</kogito.version>
           </systemPropertyVariables>
         </configuration>
       </plugin>

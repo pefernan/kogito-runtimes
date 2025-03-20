@@ -25,7 +25,7 @@
   <parent>
     <groupId>org.kie.kogito</groupId>
     <artifactId>kogito-spring-boot-integration-tests</artifactId>
-    <version>999-SNAPSHOT</version>
+    <version>9.2.0-ibm-0004</version>
   </parent>
 
   <artifactId>integration-tests-springboot-processes-persistence-it</artifactId>
@@ -53,7 +53,7 @@
       <dependency>
         <groupId>org.kie.kogito</groupId>
         <artifactId>kogito-spring-boot-bom</artifactId>
-        <version>${project.version}</version>
+        <version>9.2.0-ibm-0004</version>
         <type>pom</type>
         <scope>import</scope>
       </dependency>

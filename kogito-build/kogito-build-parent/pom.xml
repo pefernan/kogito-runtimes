@@ -28,7 +28,7 @@
     <groupId>org.kie.kogito</groupId>
     <!-- The Kogito Dependencies BOM is transitively inherited here to reuse all the version properties defined there and used across our internal modules. -->
     <artifactId>kogito-build-no-bom-parent</artifactId>
-    <version>999-SNAPSHOT</version>
+    <version>9.2.0-ibm-0004</version>
     <relativePath>../kogito-build-no-bom-parent/pom.xml</relativePath>
   </parent>
 
@@ -43,7 +43,7 @@
       <dependency>
         <groupId>org.kie.kogito</groupId>
         <artifactId>kogito-bom</artifactId>
-        <version>${project.version}</version>
+        <version>9.2.0-ibm-0004</version>
         <type>pom</type>
         <scope>import</scope>
       </dependency>
@@ -51,12 +51,12 @@
       <dependency>
         <groupId>org.kie.kogito</groupId>
         <artifactId>integration-tests-processes-persistence-common</artifactId>
-        <version>${project.version}</version>
+        <version>9.2.0-ibm-0004</version>
       </dependency>
       <dependency>
         <groupId>org.kie.kogito</groupId>
         <artifactId>integration-tests-processes-persistence-common</artifactId>
-        <version>${project.version}</version>
+        <version>9.2.0-ibm-0004</version>
         <type>test-jar</type>
       </dependency>
 
@@ -65,17 +65,17 @@
       <dependency>
         <groupId>org.kie.kogito</groupId>
         <artifactId>kogito-test-utils</artifactId>
-        <version>${project.version}</version>
+        <version>9.2.0-ibm-0004</version>
       </dependency>
       <dependency>
         <groupId>org.kie.kogito</groupId>
         <artifactId>kogito-quarkus-test-utils</artifactId>
-        <version>${project.version}</version>
+        <version>9.2.0-ibm-0004</version>
       </dependency>
       <dependency>
         <groupId>org.kie.kogito</groupId>
         <artifactId>kogito-spring-boot-test-utils</artifactId>
-        <version>${project.version}</version>
+        <version>9.2.0-ibm-0004</version>
       </dependency>
     </dependencies>
   </dependencyManagement>

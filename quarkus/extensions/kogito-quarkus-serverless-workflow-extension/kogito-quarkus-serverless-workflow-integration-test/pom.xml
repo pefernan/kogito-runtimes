@@ -24,7 +24,7 @@
   <parent>
     <artifactId>sonataflow-quarkus-extension</artifactId>
     <groupId>org.apache.kie.sonataflow</groupId>
-    <version>999-SNAPSHOT</version>
+    <version>9.2.0-ibm-0004</version>
   </parent>
   <modelVersion>4.0.0</modelVersion>
 
@@ -143,7 +143,7 @@
     <dependency>
       <groupId>org.apache.kie.sonataflow</groupId>
       <artifactId>sonataflow-quarkus-deployment</artifactId>
-      <version>${project.version}</version>
+      <version>9.2.0-ibm-0004</version>
       <type>pom</type>
       <scope>test</scope>
       <exclusions>
@@ -156,7 +156,7 @@
     <dependency>
       <groupId>org.kie</groupId>
       <artifactId>kie-addons-quarkus-persistence-jdbc-deployment</artifactId>
-      <version>${project.version}</version>
+      <version>9.2.0-ibm-0004</version>
       <type>pom</type>
       <scope>test</scope>
       <exclusions>
@@ -169,7 +169,7 @@
     <dependency>
       <groupId>org.kie</groupId>
       <artifactId>kie-addons-quarkus-events-process-deployment</artifactId>
-      <version>${project.version}</version>
+      <version>9.2.0-ibm-0004</version>
       <type>pom</type>
       <scope>test</scope>
       <exclusions>
@@ -182,7 +182,7 @@
     <dependency>
       <groupId>org.kie</groupId>
       <artifactId>kie-addons-quarkus-process-management-deployment</artifactId>
-      <version>${project.version}</version>
+      <version>9.2.0-ibm-0004</version>
       <type>pom</type>
       <scope>test</scope>
       <exclusions>
@@ -278,7 +278,7 @@
           <systemPropertyVariables combine.children="append">
             <java.util.logging.manager>org.jboss.logmanager.LogManager</java.util.logging.manager>
             <container.image.kafka>${container.image.kafka}</container.image.kafka>
-            <kogito.version>${project.version}</kogito.version>
+            <kogito.version>9.2.0-ibm-0004</kogito.version>
           </systemPropertyVariables>
         </configuration>
       </plugin>

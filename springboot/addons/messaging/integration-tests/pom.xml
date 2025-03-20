@@ -28,7 +28,7 @@
   <parent>
     <groupId>org.kie</groupId>
     <artifactId>kie-addons-springboot-messaging-parent</artifactId>
-    <version>999-SNAPSHOT</version>
+    <version>9.2.0-ibm-0004</version>
   </parent>
   <artifactId>kie-addons-springboot-messaging-it</artifactId>
   <name>KIE :: Add-Ons :: Messaging :: Spring Boot (ITs)</name>
@@ -44,7 +44,7 @@
       <dependency>
         <groupId>org.kie.kogito</groupId>
         <artifactId>kogito-kie-bom</artifactId>
-        <version>${project.version}</version>
+        <version>9.2.0-ibm-0004</version>
         <type>pom</type>
         <scope>import</scope>
       </dependency>
@@ -61,19 +61,19 @@
     <dependency>
       <groupId>org.kie.kogito</groupId>
       <artifactId>kogito-spring-boot-bom</artifactId>
-      <version>${project.version}</version>
+      <version>9.2.0-ibm-0004</version>
       <type>pom</type>
     </dependency>
     <dependency>
       <groupId>org.kie.kogito</groupId>
       <artifactId>kogito-bom</artifactId>
-      <version>${project.version}</version>
+      <version>9.2.0-ibm-0004</version>
       <type>pom</type>
     </dependency>
     <dependency>
       <groupId>org.kie.kogito</groupId>
       <artifactId>kogito-kie-bom</artifactId>
-      <version>${project.version}</version>
+      <version>9.2.0-ibm-0004</version>
       <type>pom</type>
     </dependency>
     <dependency>

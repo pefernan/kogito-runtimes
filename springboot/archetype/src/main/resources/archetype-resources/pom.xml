@@ -37,7 +37,7 @@
 
   <properties>
     <java.version>${maven.compiler.release}</java.version>
-    <kogito.version>${project.version}</kogito.version>
+    <kogito.version>9.2.0-ibm-0004</kogito.version>
   </properties>
 
   <dependencyManagement>

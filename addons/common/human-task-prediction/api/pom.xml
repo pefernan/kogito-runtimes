@@ -25,7 +25,7 @@
   <parent>
     <groupId>org.jbpm</groupId>
     <artifactId>jbpm-addons-human-task-prediction-parent</artifactId>
-    <version>999-SNAPSHOT</version>
+    <version>9.2.0-ibm-0004</version>
   </parent>
   <artifactId>jbpm-addons-human-task-prediction-api</artifactId>
   <name>jBPM :: Add-Ons :: Predictions :: API</name>
@@ -41,7 +41,7 @@
       <dependency>
         <groupId>org.kie.kogito</groupId>
         <artifactId>kogito-kie-bom</artifactId>
-        <version>${project.version}</version>
+        <version>9.2.0-ibm-0004</version>
         <type>pom</type>
         <scope>import</scope>
       </dependency>

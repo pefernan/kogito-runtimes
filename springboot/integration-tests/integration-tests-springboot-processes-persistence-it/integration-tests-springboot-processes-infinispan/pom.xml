@@ -24,7 +24,7 @@
   <parent>
     <artifactId>integration-tests-springboot-processes-persistence-it</artifactId>
     <groupId>org.kie.kogito</groupId>
-    <version>999-SNAPSHOT</version>
+    <version>9.2.0-ibm-0004</version>
     <relativePath>../pom.xml</relativePath>
   </parent>
   <modelVersion>4.0.0</modelVersion>
@@ -68,12 +68,12 @@
     <dependency>
       <groupId>org.kie.kogito</groupId>
       <artifactId>integration-tests-springboot-processes-persistence-common</artifactId>
-      <version>${project.version}</version>
+      <version>9.2.0-ibm-0004</version>
     </dependency>
     <dependency>
       <groupId>org.kie.kogito</groupId>
       <artifactId>integration-tests-springboot-processes-persistence-common</artifactId>
-      <version>${project.version}</version>
+      <version>9.2.0-ibm-0004</version>
       <classifier>tests</classifier>
       <type>test-jar</type>
       <scope>test</scope>
@@ -148,7 +148,7 @@
       <plugin>
         <groupId>org.kie.kogito</groupId>
         <artifactId>kogito-maven-plugin</artifactId>
-        <version>${project.version}</version> <!-- Needed, otherwise it would use the latest release found on Maven central -->
+        <version>9.2.0-ibm-0004</version> <!-- Needed, otherwise it would use the latest release found on Maven central -->
         <executions>
           <execution>
             <phase>compile</phase>

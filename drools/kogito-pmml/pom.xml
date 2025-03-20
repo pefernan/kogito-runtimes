@@ -27,7 +27,7 @@
   <parent>
     <groupId>org.kie.kogito</groupId>
     <artifactId>drools</artifactId>
-    <version>999-SNAPSHOT</version>
+    <version>9.2.0-ibm-0004</version>
   </parent>
 
   <artifactId>kogito-pmml</artifactId>
@@ -46,13 +46,13 @@
        <groupId>org.kie.kogito</groupId>
        <artifactId>kogito-pmml-dependencies</artifactId>
        <type>pom</type>
-       <version>${project.version}</version>
+       <version>9.2.0-ibm-0004</version>
      </dependency>
      <dependency>
        <groupId>org.kie.kogito</groupId>
        <artifactId>kogito-kie-bom</artifactId>
        <type>pom</type>
-       <version>${project.version}</version>
+       <version>9.2.0-ibm-0004</version>
        <scope>import</scope>
      </dependency>
    </dependencies>

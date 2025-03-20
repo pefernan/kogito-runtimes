@@ -27,7 +27,7 @@
     <parent>
         <groupId>org.jbpm</groupId>
         <artifactId>jbpm-quarkus-extension</artifactId>
-        <version>999-SNAPSHOT</version>
+        <version>9.2.0-ibm-0004</version>
     </parent>
 
     <artifactId>jbpm-quarkus-integration-test</artifactId>
@@ -67,7 +67,7 @@
         <dependency>
             <groupId>org.jbpm</groupId>
             <artifactId>jbpm-quarkus-deployment</artifactId>
-            <version>${project.version}</version>
+            <version>9.2.0-ibm-0004</version>
             <type>pom</type>
             <scope>test</scope>
             <exclusions>
@@ -126,7 +126,7 @@
             <artifactId>maven-failsafe-plugin</artifactId>
             <configuration>
               <systemPropertyVariables>
-                <project.version>${project.version}</project.version>
+                <project.version>9.2.0-ibm-0004</project.version>
               </systemPropertyVariables>
             </configuration>
           </plugin>

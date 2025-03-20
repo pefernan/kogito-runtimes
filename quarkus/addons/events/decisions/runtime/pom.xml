@@ -26,7 +26,7 @@
   <parent>
     <groupId>org.kie</groupId>
     <artifactId>kie-addons-quarkus-events-decisions-parent</artifactId>
-    <version>999-SNAPSHOT</version>
+    <version>9.2.0-ibm-0004</version>
   </parent>
 
   <artifactId>kie-addons-quarkus-events-decisions</artifactId>
@@ -64,7 +64,7 @@
               <goal>extension-descriptor</goal>
             </goals>
             <configuration>
-              <deployment>${project.groupId}:${project.artifactId}-deployment:${project.version}</deployment>
+              <deployment>${project.groupId}:${project.artifactId}-deployment:9.2.0-ibm-0004</deployment>
               <capabilities>
                 <provides>org.kie.addons.events.decisions</provides>
               </capabilities>

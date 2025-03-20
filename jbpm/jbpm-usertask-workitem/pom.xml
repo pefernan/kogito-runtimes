@@ -24,7 +24,7 @@
     <parent>
         <artifactId>jbpm</artifactId>
         <groupId>org.kie.kogito</groupId>
-        <version>999-SNAPSHOT</version>
+        <version>9.2.0-ibm-0004</version>
     </parent>
 
     <artifactId>jbpm-usertask-workitem</artifactId>
@@ -62,7 +62,7 @@
             <dependency>
                 <groupId>org.kie.kogito</groupId>
                 <artifactId>kogito-kie-bom</artifactId>
-                <version>${project.version}</version>
+                <version>9.2.0-ibm-0004</version>
                 <type>pom</type>
                 <scope>import</scope>
             </dependency>

@@ -26,7 +26,7 @@
   <parent>
     <groupId>org.kie</groupId>
     <artifactId>kie-addons-events-parent</artifactId>
-    <version>999-SNAPSHOT</version>
+    <version>9.2.0-ibm-0004</version>
   </parent>
 
   <artifactId>kie-addons-events-decisions</artifactId>
@@ -54,7 +54,7 @@
     <dependency>
       <groupId>org.kie.kogito</groupId>
       <artifactId>kogito-dmn</artifactId>
-      <version>${project.version}</version>
+      <version>9.2.0-ibm-0004</version>
       <type>test-jar</type>
       <scope>test</scope>
     </dependency>

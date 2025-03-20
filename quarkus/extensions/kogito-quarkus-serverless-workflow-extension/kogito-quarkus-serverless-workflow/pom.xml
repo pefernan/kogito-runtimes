@@ -24,7 +24,7 @@
   <parent>
     <artifactId>sonataflow-quarkus-extension</artifactId>
     <groupId>org.apache.kie.sonataflow</groupId>
-    <version>999-SNAPSHOT</version>
+    <version>9.2.0-ibm-0004</version>
   </parent>
   <modelVersion>4.0.0</modelVersion>
 
@@ -167,7 +167,7 @@
               <goal>extension-descriptor</goal>
             </goals>
             <configuration>
-              <deployment>${project.groupId}:${project.artifactId}-deployment:${project.version}</deployment>
+              <deployment>${project.groupId}:${project.artifactId}-deployment:9.2.0-ibm-0004</deployment>
               <capabilities>
                 <provides>org.apache.kie.sonataflow.serverless-workflow</provides>
               </capabilities>

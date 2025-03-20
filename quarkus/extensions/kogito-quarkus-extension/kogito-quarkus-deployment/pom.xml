@@ -27,7 +27,7 @@
   <parent>
     <groupId>org.jbpm</groupId>
     <artifactId>jbpm-with-drools-quarkus-extension</artifactId>
-    <version>999-SNAPSHOT</version>
+    <version>9.2.0-ibm-0004</version>
   </parent>
 
   <artifactId>jbpm-with-drools-quarkus-deployment</artifactId>
@@ -67,17 +67,17 @@
         <dependency>
           <groupId>org.drools</groupId>
           <artifactId>drools-quarkus-rules-deployment</artifactId>
-          <version>${project.version}</version>
+          <version>9.2.0-ibm-0004</version>
         </dependency>
         <dependency>
           <groupId>org.drools</groupId>
           <artifactId>drools-quarkus-decisions-deployment</artifactId>
-          <version>${project.version}</version>
+          <version>9.2.0-ibm-0004</version>
         </dependency>
         <dependency>
           <groupId>org.kie</groupId>
           <artifactId>kie-quarkus-predictions-deployment</artifactId>
-          <version>${project.version}</version>
+          <version>9.2.0-ibm-0004</version>
         </dependency>
       </dependencies>
     </profile>

@@ -25,7 +25,7 @@
   <parent>
     <groupId>org.kie.kogito</groupId>
     <artifactId>kogito-quarkus-integration-tests</artifactId>
-    <version>999-SNAPSHOT</version>
+    <version>9.2.0-ibm-0004</version>
   </parent>
   <artifactId>integration-tests-quarkus-legacy-rules</artifactId>
   <name>Kogito :: Integration Tests :: Quarkus :: Legacy Rules</name>
@@ -40,14 +40,14 @@
       <dependency>
         <groupId>org.kie.kogito</groupId>
         <artifactId>kogito-quarkus-bom</artifactId>
-        <version>${project.version}</version>
+        <version>9.2.0-ibm-0004</version>
         <type>pom</type>
         <scope>import</scope>
       </dependency>
       <dependency>
         <groupId>org.kie.kogito</groupId>
         <artifactId>kogito-kie-bom</artifactId>
-        <version>${project.version}</version>
+        <version>9.2.0-ibm-0004</version>
         <type>pom</type>
         <scope>import</scope>
       </dependency>
@@ -101,7 +101,7 @@
     <dependency>
       <groupId>org.drools</groupId>
       <artifactId>drools-quarkus-rules-deployment</artifactId>
-      <version>${project.version}</version>
+      <version>9.2.0-ibm-0004</version>
       <type>pom</type>
       <scope>test</scope>
       <exclusions>

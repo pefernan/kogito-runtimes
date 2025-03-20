@@ -24,7 +24,7 @@
   <parent>
     <artifactId>integration-tests-quarkus-processes-persistence</artifactId>
     <groupId>org.kie.kogito</groupId>
-    <version>999-SNAPSHOT</version>
+    <version>9.2.0-ibm-0004</version>
     <relativePath>../pom.xml</relativePath>
   </parent>
   <modelVersion>4.0.0</modelVersion>
@@ -82,7 +82,7 @@
     <dependency>
       <groupId>org.kie</groupId>
       <artifactId>kie-addons-quarkus-persistence-filesystem-deployment</artifactId>
-      <version>${project.version}</version>
+      <version>9.2.0-ibm-0004</version>
       <type>pom</type>
       <scope>test</scope>
       <exclusions>
@@ -95,7 +95,7 @@
     <dependency>
       <groupId>org.kie</groupId>
       <artifactId>kie-addons-quarkus-process-management-deployment</artifactId>
-      <version>${project.version}</version>
+      <version>9.2.0-ibm-0004</version>
       <type>pom</type>
       <scope>test</scope>
       <exclusions>

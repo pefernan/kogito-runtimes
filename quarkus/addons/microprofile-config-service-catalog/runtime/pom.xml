@@ -26,7 +26,7 @@
     <parent>
         <groupId>org.kie</groupId>
         <artifactId>kogito-addons-quarkus-microprofile-config-service-catalog-parent</artifactId>
-        <version>999-SNAPSHOT</version>
+        <version>9.2.0-ibm-0004</version>
     </parent>
 
     <artifactId>kogito-addons-quarkus-microprofile-config-service-catalog</artifactId>
@@ -62,7 +62,7 @@
         <dependency>
             <groupId>org.kie</groupId>
             <artifactId>kie-addons-kubernetes-service-catalog</artifactId>
-            <version>${project.version}</version>
+            <version>9.2.0-ibm-0004</version>
             <type>test-jar</type>
             <scope>test</scope>
         </dependency>
@@ -81,7 +81,7 @@
                             <goal>extension-descriptor</goal>
                         </goals>
                         <configuration>
-                            <deployment>${project.groupId}:${project.artifactId}-deployment:${project.version}
+                            <deployment>${project.groupId}:${project.artifactId}-deployment:9.2.0-ibm-0004
                             </deployment>
                             <capabilities>
                                 <provides>org.kie.kogito.addons.quarkus.microprofile.config.service.catalog</provides>

@@ -22,7 +22,7 @@
   <parent>
     <groupId>org.kie.kogito</groupId>
     <artifactId>kogito-serverless-workflow</artifactId>
-    <version>999-SNAPSHOT</version>
+    <version>9.2.0-ibm-0004</version>
   </parent>
    <name>Kogito :: Serverless Workflow :: DMN :: Parser</name>
    
@@ -69,7 +69,7 @@
         <groupId>org.kie</groupId>
         <artifactId>kie-dmn-test-resources</artifactId>
         <classifier>tests</classifier>
-        <version>${project.version}</version>
+        <version>9.2.0-ibm-0004</version>
         <scope>test</scope>
     </dependency>
     <dependency>

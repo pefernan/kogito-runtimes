@@ -23,7 +23,7 @@
   <parent>
     <groupId>org.apache.kie.sonataflow</groupId>
     <artifactId>sonataflow-addons-quarkus-python-parent</artifactId>
-    <version>999-SNAPSHOT</version>
+    <version>9.2.0-ibm-0004</version>
   </parent>
   <artifactId>sonataflow-addons-quarkus-python-integration-tests</artifactId>
   <name>SonataFlow:: Addons :: Quarkus:: Serverless Workflow:: Python:: Integration Test</name>
@@ -69,7 +69,7 @@
     <dependency>
       <groupId>org.apache.kie.sonataflow</groupId>
       <artifactId>sonataflow-quarkus-deployment</artifactId>
-      <version>${project.version}</version>
+      <version>9.2.0-ibm-0004</version>
       <type>pom</type>
       <scope>test</scope>
       <exclusions>
