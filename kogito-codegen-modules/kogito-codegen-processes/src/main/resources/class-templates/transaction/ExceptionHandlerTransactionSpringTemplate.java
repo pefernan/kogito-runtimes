@@ -19,6 +19,7 @@
 package org.kie.kogito.process.handler;
 
 import org.jbpm.workflow.instance.impl.WorkflowProcessInstanceImpl;
+import org.kie.kogito.Application;
 import org.kie.kogito.Model;
 import org.kie.kogito.handler.ExceptionHandler;
 import org.kie.kogito.process.MutableProcessInstances;
@@ -26,7 +27,6 @@ import org.kie.kogito.process.ProcessInstanceExecutionException;
 import org.kie.kogito.process.Processes;
 import org.kie.kogito.process.impl.AbstractProcessInstance;
 import org.kie.kogito.services.uow.UnitOfWorkExecutor;
-import org.kie.kogito.uow.UnitOfWorkManager;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -40,7 +40,7 @@ public class ExceptionHandlerTransaction implements ExceptionHandler {
     private static final Logger LOG = LoggerFactory.getLogger(ExceptionHandlerTransaction.class);
 
     @Autowired
-    UnitOfWorkManager unitOfWorkManager;
+    Application application;
 
     @Autowired(required = false)
     Processes processes;
@@ -54,7 +54,7 @@ public class ExceptionHandlerTransaction implements ExceptionHandler {
         if (th instanceof ProcessInstanceExecutionException) {
             ProcessInstanceExecutionException processInstanceExecutionException = (ProcessInstanceExecutionException) th;
             LOG.info("handling exception {} by the handler {}", th, this.getClass().getName());
-            UnitOfWorkExecutor.executeInUnitOfWork(unitOfWorkManager, () -> {
+            UnitOfWorkExecutor.executeInUnitOfWork(application.unitOfWorkManager(), () -> {
                 String processInstanceId = processInstanceExecutionException.getProcessInstanceId();
                 processes.processByProcessInstanceId(processInstanceId).ifPresent(processDefinition -> {
                     processDefinition.instances().findById(processInstanceId).ifPresent(instance -> {

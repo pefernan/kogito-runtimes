@@ -26,6 +26,7 @@ import java.util.stream.Stream;
 
 import org.drools.codegen.common.GeneratedFile;
 import org.drools.codegen.common.GeneratedFileType;
+import org.drools.codegen.common.di.DependencyInjectionAnnotator;
 import org.drools.io.InternalResource;
 import org.jbpm.bpmn2.xml.BPMNDISemanticModule;
 import org.jbpm.bpmn2.xml.BPMNExtensionsSemanticModule;
@@ -67,13 +68,13 @@ import org.xml.sax.SAXException;
 
 import com.github.javaparser.ast.CompilationUnit;
 import com.github.javaparser.ast.body.ClassOrInterfaceDeclaration;
+import com.github.javaparser.ast.body.MethodDeclaration;
 
 import static java.lang.String.format;
 import static java.util.stream.Collectors.toList;
 import static org.jbpm.process.core.constants.CalendarConstants.BUSINESS_CALENDAR_PATH;
 import static org.kie.kogito.codegen.process.util.BusinessCalendarUtil.conditionallyAddCustomBusinessCalendar;
-import static org.kie.kogito.codegen.process.util.CodegenUtil.generatorProperty;
-import static org.kie.kogito.codegen.process.util.CodegenUtil.isTransactionEnabled;
+import static org.kie.kogito.codegen.process.util.CodegenUtil.*;
 import static org.kie.kogito.grafana.GrafanaConfigurationWriter.buildDashboardName;
 import static org.kie.kogito.grafana.GrafanaConfigurationWriter.generateOperationalDashboard;
 import static org.kie.kogito.internal.utils.ConversionUtils.sanitizeClassName;
@@ -454,14 +455,8 @@ public class ProcessCodegen extends AbstractGenerator {
         generateBusinessCalendarProducer();
 
         if (CodegenUtil.isTransactionEnabled(this, context()) && !isServerless) {
-            String template = "ExceptionHandlerTransaction";
-            TemplatedGenerator generator = TemplatedGenerator.builder()
-                    .withTemplateBasePath("/class-templates/transaction/")
-                    .withFallbackContext(JavaKogitoBuildContext.CONTEXT_NAME)
-                    .withTargetTypeName(template)
-                    .build(context(), template);
-            CompilationUnit handler = generator.compilationUnitOrThrow();
-            storeFile(MODEL_TYPE, generator.generatedFilePath(), handler.toString());
+            generateExceptionHandlerTransaction();
+            generateUnitOfWorkManagerProducer();
         }
 
         if (context().hasRESTForGenerator(this)) {
@@ -596,6 +591,49 @@ public class ProcessCodegen extends AbstractGenerator {
         if (businessCalendarClassName != null) {
             conditionallyAddCustomBusinessCalendar(compilationUnit, context(), businessCalendarClassName);
         }
+
+        storeFile(PRODUCER_TYPE, generator.generatedFilePath(), compilationUnit.toString());
+    }
+
+    private void generateExceptionHandlerTransaction() {
+        String template = "ExceptionHandlerTransaction";
+        TemplatedGenerator generator = TemplatedGenerator.builder()
+                .withTemplateBasePath("/class-templates/transaction/")
+                .withFallbackContext(JavaKogitoBuildContext.CONTEXT_NAME)
+                .withTargetTypeName(template)
+                .build(context(), template);
+        CompilationUnit handler = generator.compilationUnitOrThrow();
+        storeFile(MODEL_TYPE, generator.generatedFilePath(), handler.toString());
+    }
+
+    private void generateUnitOfWorkManagerProducer() {
+
+        String template = "TransactionalUnitOfWorkManagerProducer";
+
+        TemplatedGenerator generator = TemplatedGenerator.builder()
+                .withTemplateBasePath("/class-templates/transaction/")
+                .withFallbackContext("")
+                .withTargetTypeName(template)
+                .build(context(), template);
+
+        CompilationUnit compilationUnit = generator.compilationUnitOrThrow();
+
+        ClassOrInterfaceDeclaration producerClass = compilationUnit.findFirst(ClassOrInterfaceDeclaration.class)
+                .orElseThrow(() -> new ProcessCodegenException("TransactionalUnitOfWorkManagerProducer template does not contain a class declaration"));
+
+        compilationUnit.setPackageDeclaration(context().getPackageName());
+
+        DependencyInjectionAnnotator annotator = context().getDependencyInjectionAnnotator();
+
+        annotator.withFactoryClass(producerClass);
+
+        List<MethodDeclaration> methods = producerClass.getMethodsByName("get");
+
+        if (methods.size() != 1) {
+            throw new ProcessCodegenException("TransactionalUnitOfWorkManagerProducer contains more than one method named 'get'.");
+        }
+
+        annotator.withProduces(methods.get(0), false);
 
         storeFile(PRODUCER_TYPE, generator.generatedFilePath(), compilationUnit.toString());
     }

@@ -16,53 +16,25 @@
  * specific language governing permissions and limitations
  * under the License.
  */
-package org.kie.kogito.uow;
+package org.kie.kogito.services.uow;
 
 import java.util.function.Supplier;
 
-import org.kie.kogito.event.EventManager;
 import org.kie.kogito.process.ProcessInstanceExecutionException;
-import org.kie.kogito.uow.events.UnitOfWorkEventListener;
+import org.kie.kogito.uow.UnitOfWork;
+import org.kie.kogito.uow.UnitOfWorkFactory;
 
-/**
- * Manager that controls and give access to UnitOfWork.
- * 
- * Main entry point for application usage to gain control about
- * the execution and grouping of work.
- *
- */
-public interface UnitOfWorkManager {
+public class TransactionalUnitOfWorkManager extends DefaultUnitOfWorkManager {
+    public TransactionalUnitOfWorkManager(UnitOfWorkFactory factory) {
+        super(factory);
+    }
 
-    /**
-     * Returns current unit of work for this execution context (usually thread).
-     * 
-     * @return current unit of work
-     */
-    UnitOfWork currentUnitOfWork();
+    public TransactionalUnitOfWorkManager(UnitOfWork fallbackUnitOfWork, UnitOfWorkFactory factory) {
+        super(fallbackUnitOfWork, factory);
+    }
 
-    /**
-     * Returns new not started UnitOfWork that is associated with the manager
-     * to manage it's life cycle.
-     * 
-     * @return new, not started unit of work
-     */
-    UnitOfWork newUnitOfWork();
-
-    /**
-     * Returns instance of the event manager configured for this unit of work manager
-     * 
-     * @return event manager instance
-     */
-    EventManager eventManager();
-
-    /**
-     * Register a listener for UnitOfWorkEvent's
-     * 
-     * @param listener
-     */
-    void register(UnitOfWorkEventListener listener);
-
-    default <T> T executeUnitOfWork(Supplier<T> supplier) {
+    @Override
+    public <T> T executeUnitOfWork(Supplier<T> supplier) {
         UnitOfWork uow = newUnitOfWork();
 
         try {
@@ -74,7 +46,7 @@ public interface UnitOfWorkManager {
 
             return result;
         } catch (ProcessInstanceExecutionException e) {
-            uow.end();
+            uow.abort();
             throw e;
         } catch (Exception e) {
             uow.abort();

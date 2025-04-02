@@ -16,19 +16,21 @@
  * specific language governing permissions and limitations
  * under the License.
  */
-package org.kie.kogito.services.uow;
+package $Package$;
 
-import java.util.function.Supplier;
-
+import org.kie.kogito.services.uow.CollectingUnitOfWorkFactory;
+import org.kie.kogito.services.uow.TransactionalUnitOfWorkManager;
 import org.kie.kogito.uow.UnitOfWorkManager;
 
-public class UnitOfWorkExecutor {
+public class TransactionalUnitOfWorkManagerProducer {
 
-    private UnitOfWorkExecutor() {
+    private static final UnitOfWorkManager INSTANCE = new TransactionalUnitOfWorkManager(new CollectingUnitOfWorkFactory());
 
+    private TransactionalUnitOfWorkManagerProducer() {
+        // DO NOTHING
     }
 
-    public static <T> T executeInUnitOfWork(UnitOfWorkManager uowManager, Supplier<T> supplier) {
-        return uowManager.executeUnitOfWork(supplier);
+    public UnitOfWorkManager get() {
+        return INSTANCE;
     }
 }
