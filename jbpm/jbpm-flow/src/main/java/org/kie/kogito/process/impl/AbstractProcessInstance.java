@@ -435,6 +435,7 @@ public abstract class AbstractProcessInstance<T extends Model> implements Proces
 
     @Override
     public void triggerNode(String nodeId) {
+        clearProcessInstanceError();
         WorkflowProcessInstance wfpi = processInstance();
         RuleFlowProcess rfp = ((RuleFlowProcess) wfpi.getProcess());
 
@@ -451,6 +452,7 @@ public abstract class AbstractProcessInstance<T extends Model> implements Proces
 
     @Override
     public void cancelNodeInstance(String nodeInstanceId) {
+        clearProcessInstanceError();
         NodeInstance nodeInstance = processInstance()
                 .getNodeInstances(true)
                 .stream()
@@ -464,6 +466,7 @@ public abstract class AbstractProcessInstance<T extends Model> implements Proces
 
     @Override
     public void retriggerNodeInstance(String nodeInstanceId) {
+        clearProcessInstanceError();
         NodeInstance nodeInstance = processInstance()
                 .getNodeInstances(true)
                 .stream()
@@ -552,6 +555,7 @@ public abstract class AbstractProcessInstance<T extends Model> implements Proces
 
     @Override
     public void completeWorkItem(String id, Map<String, Object> variables, Policy... policies) {
+        clearProcessInstanceError();
         syncWorkItems();
         getProcessRuntime().getKogitoProcessRuntime().getKogitoWorkItemManager().completeWorkItem(id, variables, policies);
         removeOnFinish();
@@ -559,6 +563,7 @@ public abstract class AbstractProcessInstance<T extends Model> implements Proces
 
     @Override
     public <R> R updateWorkItem(String id, Function<KogitoWorkItem, R> updater, Policy... policies) {
+        clearProcessInstanceError();
         syncWorkItems();
         R result = getProcessRuntime().getKogitoProcessRuntime().getKogitoWorkItemManager().updateWorkItem(id, updater, policies);
         addToUnitOfWork(pi -> ((MutableProcessInstances<T>) process.instances()).update(pi.id(), pi));
@@ -567,6 +572,7 @@ public abstract class AbstractProcessInstance<T extends Model> implements Proces
 
     @Override
     public void abortWorkItem(String id, Policy... policies) {
+        clearProcessInstanceError();
         syncWorkItems();
         getProcessRuntime().getKogitoProcessRuntime().getKogitoWorkItemManager().abortWorkItem(id, policies);
         removeOnFinish();
@@ -574,6 +580,7 @@ public abstract class AbstractProcessInstance<T extends Model> implements Proces
 
     @Override
     public void transitionWorkItem(String id, WorkItemTransition transition) {
+        clearProcessInstanceError();
         syncWorkItems();
         getProcessRuntime().getKogitoProcessRuntime().getKogitoWorkItemManager().transitionWorkItem(id, transition);
         removeOnFinish();
@@ -725,7 +732,7 @@ public abstract class AbstractProcessInstance<T extends Model> implements Proces
             public void retrigger() {
                 WorkflowProcessInstanceImpl pInstance = (WorkflowProcessInstanceImpl) processInstance();
                 NodeInstanceImpl ni = (NodeInstanceImpl) pInstance.getByNodeDefinitionId(nodeInError, pInstance.getNodeContainer());
-                clearError(pInstance);
+                clearProcessInstanceError(pInstance);
                 getProcessRuntime().getProcessEventSupport().fireProcessRetriggered(pInstance, pInstance.getKnowledgeRuntime());
                 org.kie.api.runtime.process.NodeInstanceContainer nodeInstanceContainer = ni.getNodeInstanceContainer();
                 if (nodeInstanceContainer instanceof NodeInstance) {
@@ -740,18 +747,23 @@ public abstract class AbstractProcessInstance<T extends Model> implements Proces
             public void skip() {
                 WorkflowProcessInstanceImpl pInstance = (WorkflowProcessInstanceImpl) processInstance();
                 NodeInstanceImpl ni = (NodeInstanceImpl) pInstance.getByNodeDefinitionId(nodeInError, pInstance.getNodeContainer());
-                clearError(pInstance);
+                clearProcessInstanceError(pInstance);
                 ni.triggerCompleted(Node.CONNECTION_DEFAULT_TYPE, true);
                 removeOnFinish();
             }
-
-            private void clearError(WorkflowProcessInstanceImpl pInstance) {
-                pInstance.setState(STATE_ACTIVE);
-                pInstance.internalSetErrorNodeId(null);
-                pInstance.internalSetErrorNodeInstanceId(null);
-                pInstance.internalSetErrorMessage(null);
-            }
         };
+    }
+
+    private void clearProcessInstanceError() {
+        clearProcessInstanceError(processInstance);
+    }
+
+    private void clearProcessInstanceError(WorkflowProcessInstance instance) {
+        WorkflowProcessInstanceImpl pInstance = (WorkflowProcessInstanceImpl) instance;
+        pInstance.setState(STATE_ACTIVE);
+        pInstance.internalSetErrorNodeId(null);
+        pInstance.internalSetErrorNodeInstanceId(null);
+        pInstance.internalSetErrorMessage(null);
     }
 
     private class CompletionEventListener implements KogitoEventListener {

@@ -26,10 +26,6 @@ public class TransactionalUnitOfWorkManagerProducer {
 
     private static final UnitOfWorkManager INSTANCE = new TransactionalUnitOfWorkManager(new CollectingUnitOfWorkFactory());
 
-    private TransactionalUnitOfWorkManagerProducer() {
-        // DO NOTHING
-    }
-
     public UnitOfWorkManager get() {
         return INSTANCE;
     }
