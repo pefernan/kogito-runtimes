@@ -31,6 +31,7 @@
   </parent>
 
   <artifactId>jbpm-flow</artifactId>
+  <version>9.2.0-ibm-0004-DBACLD-174154</version>
   <packaging>jar</packaging>
 
   <name>Kogito :: jBPM :: Flow</name>
