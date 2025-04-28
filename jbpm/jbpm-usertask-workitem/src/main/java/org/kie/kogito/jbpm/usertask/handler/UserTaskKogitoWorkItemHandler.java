@@ -36,6 +36,8 @@ import org.kie.kogito.usertask.UserTasks;
 import org.kie.kogito.usertask.impl.DefaultUserTaskInstance;
 import org.kie.kogito.usertask.impl.lifecycle.DefaultUserTaskLifeCycle;
 import org.kie.kogito.usertask.impl.model.DeadlineHelper;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import static java.util.Collections.emptyMap;
 import static java.util.Optional.ofNullable;
@@ -46,6 +48,7 @@ import static org.kie.kogito.usertask.impl.lifecycle.DefaultUserTaskLifeCycle.WO
  * Default Work Item handler based on the standard life cycle
  */
 public class UserTaskKogitoWorkItemHandler extends DefaultKogitoWorkItemHandler {
+    private static Logger LOG = LoggerFactory.getLogger(UserTaskKogitoWorkItemHandler.class);
 
     private static String UT_SEPARATOR = System.getProperty("org.jbpm.ht.user.separator", ",");
 
@@ -79,13 +82,17 @@ public class UserTaskKogitoWorkItemHandler extends DefaultKogitoWorkItemHandler 
         Object priority = workItem.getParameter(PRIORITY);
         UserTask userTask = userTasks.userTaskById((String) workItem.getParameter(KogitoWorkItem.PARAMETER_UNIQUE_TASK_ID));
 
+        String taskName = ofNullable((String) workItem.getParameter(TASK_NAME)).orElse((String) workItem.getParameter(NODE_NAME));
+
+        LOG.debug("ACTIVATING WORK ITEM ({}) for user task with task name {}", workItem.getExternalReferenceId(), taskName);
+
         DefaultUserTaskInstance instance = (DefaultUserTaskInstance) userTask.createInstance();
 
         instance.setExternalReferenceId(workItem.getStringId());
 
         userTask.instances().create(instance);
 
-        instance.setTaskName(ofNullable((String) workItem.getParameter(TASK_NAME)).orElse((String) workItem.getParameter(NODE_NAME)));
+        instance.setTaskName(taskName);
         instance.setTaskDescription((String) workItem.getParameter(DESCRIPTION));
         instance.setTaskPriority(priority != null ? priority.toString() : null);
         instance.setSlaDueDate(workItem.getNodeInstance().getSlaDueDate());
@@ -120,14 +127,21 @@ public class UserTaskKogitoWorkItemHandler extends DefaultKogitoWorkItemHandler 
             ikw.setActualOwner(instance.getActualOwner());
         }
 
+        LOG.debug("ACTIVATING WORK ITEM for user task with task name {} - COMPLETED", taskName);
+
         return Optional.empty();
     }
 
     @Override
     public Optional<WorkItemTransition> completeWorkItemHandler(KogitoWorkItemManager manager, KogitoWorkItemHandler handler, KogitoWorkItem workItem, WorkItemTransition transition) {
+        String taskName = ofNullable((String) workItem.getParameter(TASK_NAME)).orElse((String) workItem.getParameter(NODE_NAME));
+
+        LOG.debug("COMPLETING WORK ITEM ({}) for user task with task name {}", workItem.getExternalReferenceId(), taskName);
+
         if (transition.data().containsKey("Notify")) {
             return Optional.empty();
         }
+
         UserTasks userTasks = handler.getApplication().get(UserTasks.class);
         UserTask userTask = userTasks.userTaskById((String) workItem.getParameter(KogitoWorkItem.PARAMETER_UNIQUE_TASK_ID));
         userTask.instances().findById(workItem.getExternalReferenceId()).ifPresent(ut -> {
@@ -136,6 +150,8 @@ public class UserTaskKogitoWorkItemHandler extends DefaultKogitoWorkItemHandler 
             }
             ut.transition(DefaultUserTaskLifeCycle.SKIP, Collections.singletonMap(PARAMETER_NOTIFY, Boolean.FALSE), IdentityProviders.of(WORKFLOW_ENGINE_USER));
         });
+        LOG.debug("COMPLETING WORK ITEM ({}) for user task with task name {} - DONE", workItem.getExternalReferenceId(), taskName);
+
         return Optional.empty();
     }
 

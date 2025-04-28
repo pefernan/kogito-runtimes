@@ -176,6 +176,10 @@ public class DefaultUserTaskInstance implements UserTaskInstance {
         this.userTaskEventSupport = userTaskEventSupport;
     }
 
+    public KogitoUserTaskEventSupport getUserTaskEventSupport() {
+        return userTaskEventSupport;
+    }
+
     public void setUserTaskLifeCycle(UserTaskLifeCycle userTaskLifeCycle) {
         this.userTaskLifeCycle = userTaskLifeCycle;
     }
@@ -259,12 +263,16 @@ public class DefaultUserTaskInstance implements UserTaskInstance {
 
     @Override
     public void transition(String transitionId, Map<String, Object> data, IdentityProvider identity) {
+        logMe("TRANSITIONING", Map.of("transitionId", transitionId));
         Optional<UserTaskTransitionToken> next = Optional.of(this.userTaskLifeCycle.newTransitionToken(transitionId, this, data));
         while (next.isPresent()) {
             UserTaskTransitionToken transition = next.get();
             next = this.userTaskLifeCycle.transition(this, transition, identity);
             this.status = transition.target();
+            logMe("TRANSITION DONE", Map.of("transitionId", transitionId, "userTaskEventSupport", userTaskEventSupport));
             this.userTaskEventSupport.fireOneUserTaskStateChange(this, transition.source(), transition.target());
+            logMe("TRANSITION DONE - EVENTS FIRED", Map.of());
+
         }
         this.updatePersistenceOrRemove();
     }
@@ -276,6 +284,7 @@ public class DefaultUserTaskInstance implements UserTaskInstance {
     }
 
     private void updatePersistenceOrRemove() {
+        logMe("UPDATE PERSISTENCE OR REMOVE", Map.of("isTerminate", status.isTerminate()));
         if (this.status.isTerminate()) {
             this.instances.remove(this);
         } else {
@@ -791,6 +800,29 @@ public class DefaultUserTaskInstance implements UserTaskInstance {
     public String toString() {
         return "DefaultUserTaskInstance [id=" + id + ", status=" + status + ", actualOwner=" + actualOwner + ", taskName=" + taskName + ", taskDescription=" + taskDescription + ", taskPriority="
                 + taskPriority + ", slaDueDate=" + slaDueDate + "]";
+    }
+
+    private void logMe(String action, Map<String, Object> params) {
+        LOG.debug(buildMessage(this, action, params));
+    }
+
+    public static String buildMessage(UserTaskInstance userTaskInstance, String action, Map<String, Object> params) {
+        String header = String.format("%s: id:%s name:%s \n", action, userTaskInstance.getId(), userTaskInstance.getTaskName());
+        Map<String, Object> data = new HashMap<>();
+        data.put("id", userTaskInstance.getId());
+        data.put("name", userTaskInstance.getTaskName());
+        data.put("state", userTaskInstance.getStatus().getName());
+        data.put("owner", userTaskInstance.getActualOwner());
+        data.put("processInstanceId", userTaskInstance.getMetadata().get("ProcessInstanceId"));
+
+        StringBuilder sb = new StringBuilder();
+        sb.append(header);
+        sb.append("TASK:\n");
+        data.forEach((key, value) -> sb.append(String.format("--> %s: %s\n", key, value)));
+
+        sb.append("PARAMS: \n");
+        params.forEach((key, value) -> sb.append(String.format("--> %s: %s\n", key, value)));
+        return sb.toString();
     }
 
 }

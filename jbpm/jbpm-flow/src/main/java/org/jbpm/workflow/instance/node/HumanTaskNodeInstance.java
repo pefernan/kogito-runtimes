@@ -25,8 +25,11 @@ import org.jbpm.process.instance.context.swimlane.SwimlaneContextInstance;
 import org.jbpm.workflow.core.node.HumanTaskNode;
 import org.jbpm.workflow.core.node.WorkItemNode;
 import org.kie.kogito.process.workitems.InternalKogitoWorkItem;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class HumanTaskNodeInstance extends WorkItemNodeInstance {
+    private static Logger LOG = LoggerFactory.getLogger(HumanTaskNodeInstance.class);
 
     private static final long serialVersionUID = 510l;
     private String separator = System.getProperty("org.jbpm.ht.user.separator", ",");
@@ -105,6 +108,7 @@ public class HumanTaskNodeInstance extends WorkItemNodeInstance {
 
     @Override
     public void triggerCompleted(InternalKogitoWorkItem workItem) {
+        LOG.debug("Triggered completed work item {}", workItem.getExternalReferenceId());
         String swimlaneName = getHumanTaskNode().getSwimlane();
         SwimlaneContextInstance swimlaneContextInstance = getSwimlaneContextInstance(swimlaneName);
         if (swimlaneContextInstance != null) {

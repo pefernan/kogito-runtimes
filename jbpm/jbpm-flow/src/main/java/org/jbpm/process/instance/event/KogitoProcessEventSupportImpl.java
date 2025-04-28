@@ -21,6 +21,7 @@ package org.jbpm.process.instance.event;
 import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.CopyOnWriteArrayList;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Consumer;
 
 import org.kie.api.event.process.MessageEvent;
@@ -41,8 +42,12 @@ import org.kie.kogito.internal.process.runtime.KogitoNodeInstance;
 import org.kie.kogito.internal.process.runtime.KogitoProcessInstance;
 import org.kie.kogito.internal.process.workitem.KogitoWorkItem;
 import org.kie.kogito.internal.process.workitem.WorkItemTransition;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class KogitoProcessEventSupportImpl implements KogitoProcessEventSupport {
+
+    private static Logger LOG = LoggerFactory.getLogger(KogitoProcessEventSupportImpl.class);
 
     private final List<KogitoProcessEventListener> listeners = new CopyOnWriteArrayList<>();
 
@@ -123,14 +128,33 @@ public class KogitoProcessEventSupportImpl implements KogitoProcessEventSupport 
 
     @Override
     public void fireBeforeNodeLeft(final KogitoNodeInstance nodeInstance, KieRuntime kruntime) {
+        logNodeLeft("BEFORE", nodeInstance);
         final ProcessNodeLeftEvent event = new KogitoProcessNodeLeftEventImpl(nodeInstance, kruntime, identityProvider.getName());
-        notifyAllListeners(l -> l.beforeNodeLeft(event));
+        AtomicInteger counter = new AtomicInteger();
+        notifyAllListeners(l -> {
+            l.beforeNodeLeft(event);
+            counter.incrementAndGet();
+        });
+        LOG.debug("LISTENERS NOTIFIED: {}", counter);
     }
 
     @Override
     public void fireAfterNodeLeft(final KogitoNodeInstance nodeInstance, KieRuntime kruntime) {
+        logNodeLeft("AFTER", nodeInstance);
         final ProcessNodeLeftEvent event = new KogitoProcessNodeLeftEventImpl(nodeInstance, kruntime, identityProvider.getName());
-        notifyAllListeners(l -> l.afterNodeLeft(event));
+        AtomicInteger counter = new AtomicInteger();
+        notifyAllListeners(l -> {
+            l.afterNodeLeft(event);
+            counter.incrementAndGet();
+        });
+        LOG.debug("LISTENERS NOTIFIED: {}", counter);
+
+    }
+
+    private void logNodeLeft(String action, final KogitoNodeInstance nodeInstance) {
+        LOG.debug("{} NODE LEFT EVENT: ID {} NAME {} DEFINITION {} TYPE {}", action, nodeInstance.getId(), nodeInstance.getNodeName(), nodeInstance.getNodeDefinitionId(),
+                nodeInstance.getNode().getNodeType());
+        LOG.debug("LISTENERS: {}", listeners.size());
     }
 
     @Override

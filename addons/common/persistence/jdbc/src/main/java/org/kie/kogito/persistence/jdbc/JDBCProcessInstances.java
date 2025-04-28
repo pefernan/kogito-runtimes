@@ -25,6 +25,7 @@ import java.util.stream.Stream;
 import javax.sql.DataSource;
 
 import org.jbpm.flow.serialization.ProcessInstanceMarshallerService;
+import org.jbpm.ruleflow.instance.RuleFlowProcessInstance;
 import org.kie.kogito.process.MutableProcessInstances;
 import org.kie.kogito.process.Process;
 import org.kie.kogito.process.ProcessInstance;
@@ -72,6 +73,22 @@ public class JDBCProcessInstances implements MutableProcessInstances {
         LOGGER.debug("Updating process instance id: {}, processId: {}, processVersion: {}", id, process.id(), process.version());
         try {
             if (isActive(instance)) {
+
+                RuleFlowProcessInstance pi = (RuleFlowProcessInstance) ((AbstractProcessInstance<?>) instance).internalGetProcessInstance();
+
+                pi.getNodeInstances().forEach(n -> {
+                    LOGGER.debug("Updating node instance id: {}, name: {}, nodeId: {}", n.getId(), n.getNodeName(), n.getNodeId());
+                });
+                LOGGER.debug("action: {}", pi.getVariable("action"));
+                LOGGER.debug("ACTIVE NODES:");
+                pi.getActiveNodeIds().forEach(n -> {
+                    LOGGER.debug("ACTIVE NODE: {}", n);
+                });
+
+                LOGGER.debug("COMPLETED NODES:");
+                pi.getCompletedNodeIds().forEach(n -> {
+                    LOGGER.debug("COMPLETE NODE: {}", n);
+                });
                 if (lock) {
                     boolean isUpdated = repository.updateWithLock(process.id(), process.version(), UUID.fromString(id), marshaller.marshallProcessInstance(instance), instance.version());
                     if (!isUpdated) {

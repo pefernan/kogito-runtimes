@@ -88,6 +88,8 @@ import static org.kie.kogito.internal.process.runtime.KogitoProcessInstance.STAT
  */
 public class WorkItemNodeInstance extends StateBasedNodeInstance implements EventListener, ContextInstanceContainer, KogitoWorkItemNodeInstance {
 
+    private static Logger LOG = LoggerFactory.getLogger(WorkItemNodeInstance.class);
+
     private static final long serialVersionUID = 510l;
     private static final Logger logger = LoggerFactory.getLogger(WorkItemNodeInstance.class);
 
@@ -272,6 +274,7 @@ public class WorkItemNodeInstance extends StateBasedNodeInstance implements Even
         this.workItem = workItem;
         WorkItemNode workItemNode = getWorkItemNode();
 
+        LOG.debug("Triggered completed work item {}", workItem.getState());
         if (workItemNode != null && workItem.getState() == COMPLETED) {
             validateWorkItemResultVariable(getProcessInstance().getProcessName(), workItemNode.getOutAssociations(), workItem);
             Map<String, Object> outputs = new HashMap<>(workItem.getResults());

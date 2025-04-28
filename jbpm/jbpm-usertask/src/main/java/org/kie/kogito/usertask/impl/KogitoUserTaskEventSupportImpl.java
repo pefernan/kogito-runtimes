@@ -22,6 +22,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.CopyOnWriteArrayList;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Consumer;
 
 import org.kie.kogito.auth.IdentityProvider;
@@ -40,8 +41,12 @@ import org.kie.kogito.usertask.impl.events.UserTaskVariableEventImpl;
 import org.kie.kogito.usertask.lifecycle.UserTaskState;
 import org.kie.kogito.usertask.model.Attachment;
 import org.kie.kogito.usertask.model.Comment;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class KogitoUserTaskEventSupportImpl implements KogitoUserTaskEventSupport {
+
+    private static Logger LOG = LoggerFactory.getLogger(KogitoUserTaskEventSupportImpl.class);
 
     private List<UserTaskEventListener> listeners;
 
@@ -89,7 +94,18 @@ public class KogitoUserTaskEventSupportImpl implements KogitoUserTaskEventSuppor
         UserTaskStateEventImpl event = new UserTaskStateEventImpl(userTaskInstance, oldStatus, newStatus, identityProvider.getName());
         event.setOldStatus(oldStatus);
         event.setNewStatus(newStatus);
-        notifyAllListeners(l -> l.onUserTaskState(event));
+
+        LOG.debug(DefaultUserTaskInstance.buildMessage(userTaskInstance, "TASK STATE CHANGED - FIRING EVENTS", Map.of("event", event, "listeners", listeners.size())));
+
+        AtomicInteger counter = new AtomicInteger(0);
+
+        notifyAllListeners(l -> {
+            l.onUserTaskState(event);
+            counter.incrementAndGet();
+        });
+
+        LOG.debug(DefaultUserTaskInstance.buildMessage(userTaskInstance, "TASK STATE CHANGED - FIRED EVENTS", Map.of("events", counter.get())));
+
     }
 
     @Override

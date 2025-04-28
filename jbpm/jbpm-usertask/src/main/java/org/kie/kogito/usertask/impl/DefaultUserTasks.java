@@ -31,8 +31,12 @@ import org.kie.kogito.usertask.UserTaskConfig;
 import org.kie.kogito.usertask.UserTaskInstance;
 import org.kie.kogito.usertask.UserTaskInstances;
 import org.kie.kogito.usertask.UserTasks;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class DefaultUserTasks implements UserTasks {
+
+    private static Logger LOG = LoggerFactory.getLogger(DefaultUserTasks.class);
 
     private Map<String, UserTask> userTasks;
     private Application application;
@@ -75,26 +79,46 @@ public class DefaultUserTasks implements UserTasks {
     }
 
     public UserTaskInstance disconnect(UserTaskInstance userTaskInstance) {
+
+        logUserTaskInstance(userTaskInstance, "DISCONNECTING");
         DefaultUserTaskInstance instance = (DefaultUserTaskInstance) userTaskInstance;
         instance.setUserTask(null);
         instance.setUserTaskEventSupport(null);
         instance.setUserTaskLifeCycle(null);
         instance.setInstances(null);
         instance.setJobsService(null);
+        logUserTaskInstance(userTaskInstance, "DISCONNECTED");
+
         return instance;
     }
 
     public UserTaskInstance connect(UserTaskInstance userTaskInstance) {
+
+        logUserTaskInstance(userTaskInstance, "CONNECTING");
         DefaultUserTaskInstance instance = (DefaultUserTaskInstance) userTaskInstance;
         UserTaskConfig userTaskConfig = application.config().get(UserTaskConfig.class);
-        KogitoUserTaskEventSupportImpl impl = new KogitoUserTaskEventSupportImpl(userTaskConfig.identityProvider());
-        userTaskConfig.userTaskEventListeners().listeners().forEach(impl::addEventListener);
-        impl.addEventListener(new UnitOfWorkUserTaskEventListener(application.unitOfWorkManager()));
+        KogitoUserTaskEventSupportImpl kogitoUserTaskEventSupport = new KogitoUserTaskEventSupportImpl(userTaskConfig.identityProvider());
+        userTaskConfig.userTaskEventListeners().listeners().forEach(kogitoUserTaskEventSupport::addEventListener);
+        kogitoUserTaskEventSupport.addEventListener(new UnitOfWorkUserTaskEventListener(application.unitOfWorkManager()));
         instance.setUserTask(application.get(UserTasks.class).userTaskById(instance.getUserTaskId()));
-        instance.setUserTaskEventSupport(impl);
+        instance.setUserTaskEventSupport(kogitoUserTaskEventSupport);
         instance.setUserTaskLifeCycle(userTaskConfig.userTaskLifeCycle());
         instance.setInstances(userTaskInstances);
         instance.setJobsService(userTaskConfig.jobsService());
+
+        logUserTaskInstance(userTaskInstance, "CONNECTED");
         return instance;
+    }
+
+    private void logUserTaskInstance(UserTaskInstance userTaskInstance, String action) {
+        DefaultUserTaskInstance instance = (DefaultUserTaskInstance) userTaskInstance;
+        String separator = "################################################\n";
+
+        Map<String, Object> params = Map.of("lifecycle", instance.getUserTaskLifeCycle(),
+                "eventSupport", instance.getUserTaskEventSupport());
+
+        String message = separator + DefaultUserTaskInstance.buildMessage(userTaskInstance, action, params) + separator;
+
+        LOG.debug(message);
     }
 }

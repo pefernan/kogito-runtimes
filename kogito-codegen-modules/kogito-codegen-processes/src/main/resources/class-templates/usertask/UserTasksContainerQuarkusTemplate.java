@@ -38,6 +38,9 @@ import org.kie.kogito.usertask.UserTaskConfig;
 import org.kie.kogito.usertask.UserTaskInstance;
 import org.kie.kogito.usertask.UserTaskInstances;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import jakarta.enterprise.inject.Instance;
 
 @jakarta.enterprise.context.ApplicationScoped
@@ -86,16 +89,21 @@ public class UserTasks implements org.kie.kogito.usertask.UserTasks {
 
     private UserTaskInstance disconnect(UserTaskInstance userTaskInstance) {
         DefaultUserTaskInstance instance = (DefaultUserTaskInstance) userTaskInstance;
+
+        logUserTaskInstance(userTaskInstance, "DISCONNECTING");
         instance.setUserTask(null);
         instance.setUserTaskEventSupport(null);
         instance.setUserTaskLifeCycle(null);
         instance.setInstances(null);
         instance.setJobsService(null);
+
+        logUserTaskInstance(userTaskInstance, "DISCONNECTED");
         return instance;
     }
 
     public UserTaskInstance connect(UserTaskInstance userTaskInstance) {
         DefaultUserTaskInstance instance = (DefaultUserTaskInstance) userTaskInstance;
+        logUserTaskInstance(userTaskInstance, "CONNECTING");
         UserTaskConfig userTaskConfig = application.config().get(UserTaskConfig.class);
         KogitoUserTaskEventSupportImpl impl = new KogitoUserTaskEventSupportImpl(userTaskConfig.identityProvider());
         userTaskConfig.userTaskEventListeners().listeners().forEach(impl::addEventListener);
@@ -105,6 +113,20 @@ public class UserTasks implements org.kie.kogito.usertask.UserTasks {
         instance.setUserTaskLifeCycle(userTaskConfig.userTaskLifeCycle());
         instance.setInstances(application.config().get(UserTaskConfig.class).userTaskInstances());
         instance.setJobsService(userTaskConfig.jobsService());
+
+        logUserTaskInstance(userTaskInstance, "CONNECTED");
         return instance;
+    }
+
+    private void logUserTaskInstance(UserTaskInstance userTaskInstance, String action) {
+        DefaultUserTaskInstance instance = (DefaultUserTaskInstance) userTaskInstance;
+
+        Map<String, Object> params = new HashMap<>();
+        params.put("lifecycle", instance.getUserTaskLifeCycle());
+        params.put("eventSupport", instance.getUserTaskEventSupport());
+
+        String message = DefaultUserTaskInstance.buildMessage(userTaskInstance, action, params);
+
+        LOG.debug(message);
     }
 }
