@@ -62,6 +62,8 @@ import com.fasterxml.jackson.databind.jsontype.TypeIdResolver;
 import com.fasterxml.jackson.databind.jsontype.PolymorphicTypeValidator.Validity;
 import com.fasterxml.jackson.databind.module.SimpleModule;
 
+import org.eclipse.microprofile.faulttolerance.Retry;
+
 @Path("/usertasks/instance")
 public class UserTasksResource {
 
@@ -87,6 +89,7 @@ public class UserTasksResource {
 
     @GET
     @Produces(MediaType.APPLICATION_JSON)
+    @Retry(maxRetries = 4)
     public List<UserTaskView> list(@QueryParam("user") String user, @QueryParam("group") List<String> groups) {
         return userTaskService.list(identityProviderFactory.getOrImpersonateIdentity(user, groups));
     }
@@ -94,6 +97,7 @@ public class UserTasksResource {
     @GET
     @Path("/{taskId}")
     @Produces(MediaType.APPLICATION_JSON)
+    @Retry(maxRetries = 4)
     public UserTaskView find(@PathParam("taskId") String taskId, @QueryParam("user") String user, @QueryParam("group") List<String> groups) {
         return userTaskService.getUserTaskInstance(taskId, identityProviderFactory.getOrImpersonateIdentity(user, groups)).orElseThrow(UserTaskInstanceNotFoundException::new);
     }
@@ -102,6 +106,7 @@ public class UserTasksResource {
     @Path("/{taskId}/transition")
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
+    @Retry(maxRetries = 4)
     public UserTaskView transition(
             @PathParam("taskId") String taskId,
             @QueryParam("user") String user,
@@ -113,6 +118,7 @@ public class UserTasksResource {
     @GET
     @Path("/{taskId}/transition")
     @Produces(MediaType.APPLICATION_JSON)
+    @Retry(maxRetries = 4)
     public Collection<UserTaskTransitionView> transition(
             @PathParam("taskId") String taskId,
             @QueryParam("user") String user,
@@ -123,6 +129,7 @@ public class UserTasksResource {
     @PUT
     @Path("/{taskId}/outputs")
     @Consumes(MediaType.APPLICATION_JSON)
+    @Retry(maxRetries = 4)
     public UserTaskView setOutput(
             @PathParam("taskId") String taskId,
             @QueryParam("user") String user,
@@ -135,6 +142,7 @@ public class UserTasksResource {
     @PUT
     @Path("/{taskId}/inputs")
     @Consumes(MediaType.APPLICATION_JSON)
+    @Retry(maxRetries = 4)
     public UserTaskView setInputs(
             @PathParam("taskId") String taskId,
             @QueryParam("user") String user,
@@ -147,6 +155,7 @@ public class UserTasksResource {
     @GET
     @Path("/{taskId}/comments")
     @Produces(MediaType.APPLICATION_JSON)
+    @Retry(maxRetries = 4)
     public Collection<Comment> getComments(
             @PathParam("taskId") String taskId,
             @QueryParam("user") String user,
@@ -158,6 +167,7 @@ public class UserTasksResource {
     @Path("/{taskId}/comments")
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
+    @Retry(maxRetries = 4)
     public Comment addComment(
             @PathParam("taskId") String taskId,
             @QueryParam("user") String user,
@@ -171,6 +181,7 @@ public class UserTasksResource {
     @GET
     @Path("/{taskId}/comments/{commentId}")
     @Produces(MediaType.APPLICATION_JSON)
+    @Retry(maxRetries = 4)
     public Comment getComment(
             @PathParam("taskId") String taskId,
             @PathParam("commentId") String commentId,
@@ -184,6 +195,7 @@ public class UserTasksResource {
     @Path("/{taskId}/comments/{commentId}")
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
+    @Retry(maxRetries = 4)
     public Comment updateComment(
             @PathParam("taskId") String taskId,
             @PathParam("commentId") String commentId,
@@ -198,6 +210,7 @@ public class UserTasksResource {
 
     @DELETE
     @Path("/{taskId}/comments/{commentId}")
+    @Retry(maxRetries = 4)
     public Comment deleteComment(
             @PathParam("taskId") String taskId,
             @PathParam("commentId") String commentId,
@@ -210,6 +223,7 @@ public class UserTasksResource {
     @GET
     @Path("/{taskId}/attachments")
     @Produces(MediaType.APPLICATION_JSON)
+    @Retry(maxRetries = 4)
     public Collection<Attachment> getAttachments(
             @PathParam("taskId") String taskId,
             @QueryParam("user") String user,
@@ -221,6 +235,7 @@ public class UserTasksResource {
     @Path("/{taskId}/attachments")
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
+    @Retry(maxRetries = 4)
     public Attachment addAttachment(
             @PathParam("taskId") String taskId,
             @QueryParam("user") String user,
@@ -237,6 +252,7 @@ public class UserTasksResource {
     @Path("/{taskId}/attachments/{attachmentId}")
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
+    @Retry(maxRetries = 4)
     public Attachment updateAttachment(
             @PathParam("taskId") String taskId,
             @PathParam("attachmentId") String attachmentId,
@@ -252,6 +268,7 @@ public class UserTasksResource {
 
     @DELETE
     @Path("/{taskId}/attachments/{attachmentId}")
+    @Retry(maxRetries = 4)
     public Attachment deleteAttachment(
             @PathParam("taskId") String taskId,
             @PathParam("attachmentId") String attachmentId,
@@ -264,6 +281,7 @@ public class UserTasksResource {
     @GET
     @Path("/{taskId}/attachments/{attachmentId}")
     @Produces(MediaType.APPLICATION_JSON)
+    @Retry(maxRetries = 4)
     public Attachment getAttachment(
             @PathParam("taskId") String taskId,
             @PathParam("attachmentId") String attachmentId,

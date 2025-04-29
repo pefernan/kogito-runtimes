@@ -27,8 +27,12 @@ import org.kie.kogito.process.Signal;
 import org.kie.kogito.services.uow.UnitOfWorkExecutor;
 import org.kie.kogito.timer.TimerInstance;
 import org.kie.kogito.uow.UnitOfWorkManager;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class TriggerJobCommand {
+
+    private static Logger LOG = LoggerFactory.getLogger(TriggerJobCommand.class);
 
     private String processInstanceId;
     private String correlationId;
@@ -57,12 +61,21 @@ public class TriggerJobCommand {
 
     public boolean execute() {
         return UnitOfWorkExecutor.executeInUnitOfWork(uom, () -> {
+            logExecute("BEFORE", processInstanceId);
             Optional<? extends ProcessInstance<?>> processInstanceFound = process.instances().findById(processInstanceId);
-            return processInstanceFound.map(processInstance -> {
+
+            boolean result = processInstanceFound.map(processInstance -> {
                 processInstance.send(new JobSignal(SIGNAL, TimerInstance.with(correlationId, timerId, limit)));
                 return true;
             }).orElse(false);
+
+            logExecute("AFTER", processInstanceId);
+            return result;
         });
+    }
+
+    private void logExecute(String action, String processInstanceId) {
+        LOG.debug("{} JOB COMMAND EXECUTE: ", action, processInstanceId);
     }
 
     private class JobSignal implements Signal<Object> {

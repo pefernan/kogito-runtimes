@@ -70,7 +70,7 @@ public class JDBCProcessInstances implements MutableProcessInstances {
     @SuppressWarnings("unchecked")
     @Override
     public void update(String id, ProcessInstance instance) {
-        LOGGER.debug("Updating process instance id: {}, processId: {}, processVersion: {}", id, process.id(), process.version());
+        LOGGER.debug("Updating process instance id: {}, version: {}, processId: {}, processVersion: {}", id, instance.version(), process.id(), process.version());
         try {
             if (isActive(instance)) {
 
@@ -127,6 +127,9 @@ public class JDBCProcessInstances implements MutableProcessInstances {
         LOGGER.debug("Find process instance id: {}, mode: {}", id, mode);
         return repository.findByIdInternal(process.id(), process.version(), UUID.fromString(id)).map(r -> {
             AbstractProcessInstance pi = (AbstractProcessInstance) unmarshall(r, mode);
+
+            LOGGER.debug("PROCESS INSTANCE FOUND: {}, version: {}", id, pi.version());
+
             if (!ProcessInstanceReadMode.READ_ONLY.equals(mode)) {
                 disconnect(pi);
             }

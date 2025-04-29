@@ -254,6 +254,8 @@ public abstract class AbstractProcessInstance<T extends Model> implements Proces
             disconnect();
         }
 
+        LOG.debug("PROCESS INSTANCE INTERNAL REMOVE {}", id);
+
         processInstance = null;
     }
 
@@ -511,6 +513,7 @@ public abstract class AbstractProcessInstance<T extends Model> implements Proces
 
     protected WorkflowProcessInstance processInstance() {
         if (this.processInstance == null) {
+            LOG.debug("PROCESS INSTANCE RELOAD {}", id);
             reloadSupplier.accept(this);
             if (this.processInstance == null) {
                 throw new ProcessInstanceNotFoundException(id);
