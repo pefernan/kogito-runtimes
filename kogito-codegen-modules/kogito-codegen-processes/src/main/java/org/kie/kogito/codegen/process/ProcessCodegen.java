@@ -71,6 +71,7 @@ import com.github.javaparser.ast.body.ClassOrInterfaceDeclaration;
 import static java.lang.String.format;
 import static java.util.stream.Collectors.toList;
 import static org.jbpm.process.core.constants.CalendarConstants.BUSINESS_CALENDAR_PATH;
+import static org.kie.kogito.codegen.faultTolerance.FaultToleranceUtil.isFaultToleranceEnabled;
 import static org.kie.kogito.codegen.process.util.BusinessCalendarUtil.conditionallyAddCustomBusinessCalendar;
 import static org.kie.kogito.codegen.process.util.CodegenUtil.generatorProperty;
 import static org.kie.kogito.codegen.process.util.CodegenUtil.isTransactionEnabled;
@@ -378,7 +379,8 @@ public class ProcessCodegen extends AbstractGenerator {
                         .withWorkItems(processIdToWorkItemModel.get(workFlowProcess.getId()))
                         .withSignals(metaData.getSignals())
                         .withTriggers(metaData.isStartable(), metaData.isDynamic(), metaData.getTriggers())
-                        .withTransaction(isTransactionEnabled(this, context()));
+                        .withTransaction(isTransactionEnabled(this, context()))
+                        .withFaultTolerance(isFaultToleranceEnabled(this, context()));
 
                 rgs.add(processResourceGenerator);
             }

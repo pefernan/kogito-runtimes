@@ -77,6 +77,8 @@ import com.github.javaparser.ast.stmt.BlockStmt;
 import com.github.javaparser.ast.stmt.ExplicitConstructorInvocationStmt;
 
 import static java.util.stream.Collectors.toList;
+import static org.kie.kogito.codegen.faultTolerance.FaultToleranceUtil.annotateWithFaultTolerance;
+import static org.kie.kogito.codegen.faultTolerance.FaultToleranceUtil.isFaultToleranceEnabled;
 import static org.kie.kogito.serverless.workflow.utils.ServerlessWorkflowUtils.FAIL_ON_ERROR_PROPERTY;
 
 public class UserTaskCodegen extends AbstractGenerator {
@@ -157,19 +159,26 @@ public class UserTaskCodegen extends AbstractGenerator {
         }
 
         if (context().hasRESTForGenerator(this)) {
-            generatedFiles.add(generateRestEndpiont());
+            generatedFiles.add(generateRestEndpoint());
         }
 
         return generatedFiles;
     }
 
-    public GeneratedFile generateRestEndpiont() {
+    public GeneratedFile generateRestEndpoint() {
         String packageName = context().getPackageName();
         CompilationUnit compilationUnit = restTemplateGenerator.compilationUnitOrThrow("Not rest endpoints template found for user tasks");
         compilationUnit.setPackageDeclaration(packageName);
         if (CodegenUtil.isTransactionEnabled(this, context())) {
-            compilationUnit.findAll(MethodDeclaration.class).stream().filter(MethodDeclaration::isPublic).forEach(context().getDependencyInjectionAnnotator()::withTransactional);
+            compilationUnit.findAll(MethodDeclaration.class)
+                    .stream().filter(method -> context().getRestAnnotator().isRestAnnotated(method))
+                    .forEach(context().getDependencyInjectionAnnotator()::withTransactional);
         }
+
+        if (isFaultToleranceEnabled(this, context())) {
+            annotateWithFaultTolerance(compilationUnit, context());
+        }
+
         String className = compilationUnit.findFirst(ClassOrInterfaceDeclaration.class).get().getNameAsString();
         Path basePath = UserTaskCodegenHelper.path(packageName);
         return new GeneratedFile(GeneratedFileType.REST, basePath.resolve(className + ".java"), compilationUnit.toString());

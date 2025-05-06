@@ -24,8 +24,10 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 import java.util.function.Predicate;
+import java.util.stream.Collectors;
 
 import org.assertj.core.api.ListAssert;
+import org.drools.codegen.common.rest.RestAnnotator;
 import org.drools.io.FileSystemResource;
 import org.jbpm.compiler.canonical.ProcessMetaData;
 import org.jbpm.compiler.canonical.ProcessToExecModelGenerator;
@@ -36,6 +38,10 @@ import org.kie.api.definition.process.Process;
 import org.kie.kogito.codegen.api.AddonsConfig;
 import org.kie.kogito.codegen.api.context.KogitoBuildContext;
 import org.kie.kogito.codegen.api.context.impl.JavaKogitoBuildContext;
+import org.kie.kogito.codegen.faultTolerance.FaultToleranceAnnotator;
+import org.kie.kogito.codegen.faultTolerance.FaultToleranceUtil;
+import org.kie.kogito.codegen.faultTolerance.impl.QuarkusFaultToleranceAnnotator;
+import org.kie.kogito.codegen.faultTolerance.impl.SpringBootFaultToleranceAnnotator;
 import org.kie.kogito.codegen.process.util.CodegenUtil;
 import org.kie.kogito.codegen.usertask.UserTaskCodegen;
 import org.kie.kogito.internal.process.runtime.KogitoWorkflowProcess;
@@ -50,8 +56,9 @@ import com.github.javaparser.ast.expr.MemberValuePair;
 import com.github.javaparser.ast.expr.NormalAnnotationExpr;
 import com.github.javaparser.ast.expr.StringLiteralExpr;
 
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static java.util.Collections.emptyList;
+import static org.assertj.core.api.Assertions.*;
+import static org.kie.kogito.codegen.api.utils.KogitoContextTestUtils.mockClassAvailabilityResolver;
 import static org.kie.kogito.codegen.process.ProcessResourceGenerator.INVALID_CONTEXT_TEMPLATE;
 
 class ProcessResourceGeneratorTest {
@@ -189,7 +196,7 @@ class ProcessResourceGeneratorTest {
         // before processResourceGenerator.manageTransactional, the annotation is not there
         testTransaction(restEndpoints, kogitoBuildContext, false);
         processResourceGenerator.manageTransactional(compilationUnit);
-        // the annotation is (conditionally) add after processResourceGenerator.manageTransactional
+        // the annotation is (conditionally) added after processResourceGenerator.manageTransactional
         testTransaction(restEndpoints, kogitoBuildContext, transactionEnabled);
     }
 
@@ -208,8 +215,76 @@ class ProcessResourceGeneratorTest {
         // before processResourceGenerator.manageTransactional, the annotation is not there
         testTransaction(restEndpoints, kogitoBuildContext, false);
         processResourceGenerator.manageTransactional(compilationUnit);
-        // the annotation is (conditionally) add after processResourceGenerator.manageTransactional
+        // the annotation is (conditionally) added after processResourceGenerator.manageTransactional
         testTransaction(restEndpoints, kogitoBuildContext, transactionEnabled);
+    }
+
+    @ParameterizedTest
+    @MethodSource("org.kie.kogito.codegen.api.utils.KogitoContextTestUtils#restContextBuilders")
+    void testProcessRestResourceGenerationWithFaultToleranceDisabled(KogitoBuildContext.Builder contextBuilder) {
+        // Not relevant for the test, just to avoid validation failure
+        contextBuilder
+                .withClassAvailabilityResolver(
+                        mockClassAvailabilityResolver(List.of(QuarkusFaultToleranceAnnotator.RETRY_ANNOTATION, SpringBootFaultToleranceAnnotator.RETRY_ANNOTATION), emptyList()));
+
+        String fileName = "src/test/resources/startsignal/StartSignalEventNoPayload.bpmn2";
+        ProcessResourceGenerator processResourceGenerator = getProcessResourceGenerator(contextBuilder, fileName, false, false);
+        CompilationUnit compilationUnit =
+                processResourceGenerator.createCompilationUnit(processResourceGenerator.createTemplatedGeneratorBuilder());
+        assertThat(compilationUnit).isNotNull();
+
+        KogitoBuildContext context = contextBuilder.build();
+        Collection<MethodDeclaration> restEndpoints = processResourceGenerator.getRestMethods(compilationUnit);
+
+        // before processResourceGenerator.manageFaultTolerance, the annotation is not there
+        testFaultToleranceAnnotationPresent(restEndpoints, context, false);
+
+        processResourceGenerator.manageFaultTolerance(compilationUnit);
+        // the annotation is (conditionally) added after processResourceGenerator.manageFaultTolerance
+        testFaultToleranceAnnotationPresent(restEndpoints, context, false);
+    }
+
+    @ParameterizedTest
+    @MethodSource("org.kie.kogito.codegen.api.utils.KogitoContextTestUtils#restContextBuilders")
+    void testProcessRestResourceGenerationFaultToleranceEnabledWithoutFaultToleranceFramework(KogitoBuildContext.Builder contextBuilder) {
+        String fileName = "src/test/resources/startsignal/StartSignalEventNoPayload.bpmn2";
+        ProcessResourceGenerator processResourceGenerator = getProcessResourceGenerator(contextBuilder, fileName, false, true);
+        CompilationUnit compilationUnit =
+                processResourceGenerator.createCompilationUnit(processResourceGenerator.createTemplatedGeneratorBuilder());
+        assertThat(compilationUnit).isNotNull();
+
+        KogitoBuildContext context = contextBuilder.build();
+        Collection<MethodDeclaration> restEndpoints = processResourceGenerator.getRestMethods(compilationUnit);
+
+        assertThatThrownBy(() -> processResourceGenerator.manageFaultTolerance(compilationUnit))
+                .isInstanceOf(ProcessCodegenException.class)
+                .hasMessageContaining("Initializing Kogito Fault Tolerance Annotator but no Fault Tolerance framework is available");
+
+    }
+
+    @ParameterizedTest
+    @MethodSource("org.kie.kogito.codegen.api.utils.KogitoContextTestUtils#restContextBuilders")
+    void testProcessRestResourceGenerationWithFaultToleranceEnabled(KogitoBuildContext.Builder contextBuilder) {
+        // Not relevant for the test, just to avoid validation failure
+        contextBuilder
+                .withClassAvailabilityResolver(
+                        mockClassAvailabilityResolver(List.of(QuarkusFaultToleranceAnnotator.RETRY_ANNOTATION, SpringBootFaultToleranceAnnotator.RETRY_ANNOTATION), emptyList()));
+
+        String fileName = "src/test/resources/startsignal/StartSignalEventNoPayload.bpmn2";
+        ProcessResourceGenerator processResourceGenerator = getProcessResourceGenerator(contextBuilder, fileName, false, true);
+        CompilationUnit compilationUnit =
+                processResourceGenerator.createCompilationUnit(processResourceGenerator.createTemplatedGeneratorBuilder());
+        assertThat(compilationUnit).isNotNull();
+
+        KogitoBuildContext context = contextBuilder.build();
+        Collection<MethodDeclaration> restEndpoints = processResourceGenerator.getRestMethods(compilationUnit);
+
+        // before processResourceGenerator.manageFaultTolerance, the annotation is not there
+        testFaultToleranceAnnotationPresent(restEndpoints, context, false);
+
+        processResourceGenerator.manageFaultTolerance(compilationUnit);
+        // the annotation is (conditionally) added after processResourceGenerator.manageFaultTolerance
+        testFaultToleranceAnnotationPresent(restEndpoints, context, true);
     }
 
     @ParameterizedTest
@@ -217,8 +292,8 @@ class ProcessResourceGeneratorTest {
     void testUserTaskManageTransactionalEnabledByDefault(KogitoBuildContext.Builder contextBuilder) {
         KogitoBuildContext context = contextBuilder.build();
         UserTaskCodegen userTaskCodegen = new UserTaskCodegen(context, Collections.emptyList());
-        CompilationUnit compilationUnit = StaticJavaParser.parse(new String(userTaskCodegen.generateRestEndpiont().contents()));
-        List<MethodDeclaration> restEndpoints = compilationUnit.findAll(MethodDeclaration.class).stream().filter(MethodDeclaration::isPublic).toList();
+        CompilationUnit compilationUnit = StaticJavaParser.parse(new String(userTaskCodegen.generateRestEndpoint().contents()));
+        Collection<MethodDeclaration> restEndpoints = getRestMethods(compilationUnit, context);
         assertThat(restEndpoints).isNotEmpty();
         for (MethodDeclaration method : restEndpoints) {
             assertThat(findAnnotationExpr(method, context.getDependencyInjectionAnnotator().getTransactionalAnnotation())).isPresent();
@@ -231,7 +306,7 @@ class ProcessResourceGeneratorTest {
         KogitoBuildContext context = contextBuilder.build();
         UserTaskCodegen userTaskCodegen = new UserTaskCodegen(context, Collections.emptyList());
         context.setApplicationProperty(CodegenUtil.generatorProperty(userTaskCodegen, CodegenUtil.TRANSACTION_ENABLED), "false");
-        CompilationUnit compilationUnit = StaticJavaParser.parse(new String(userTaskCodegen.generateRestEndpiont().contents()));
+        CompilationUnit compilationUnit = StaticJavaParser.parse(new String(userTaskCodegen.generateRestEndpoint().contents()));
         List<MethodDeclaration> restEndpoints = compilationUnit.findAll(MethodDeclaration.class).stream().filter(MethodDeclaration::isPublic).toList();
         assertThat(restEndpoints).isNotEmpty();
         for (MethodDeclaration method : restEndpoints) {
@@ -245,7 +320,7 @@ class ProcessResourceGeneratorTest {
         KogitoBuildContext context = contextBuilder.build();
         UserTaskCodegen userTaskCodegen = new UserTaskCodegen(context, Collections.emptyList());
         context.setApplicationProperty(CodegenUtil.generatorProperty(userTaskCodegen, CodegenUtil.TRANSACTION_ENABLED), "false");
-        CompilationUnit compilationUnit = StaticJavaParser.parse(new String(userTaskCodegen.generateRestEndpiont().contents()));
+        CompilationUnit compilationUnit = StaticJavaParser.parse(new String(userTaskCodegen.generateRestEndpoint().contents()));
         List<MethodDeclaration> restEndpoints = compilationUnit.findAll(MethodDeclaration.class).stream().filter(MethodDeclaration::isPublic).toList();
         assertThat(restEndpoints).isNotEmpty();
         for (MethodDeclaration method : restEndpoints) {
@@ -259,8 +334,8 @@ class ProcessResourceGeneratorTest {
         KogitoBuildContext context = contextBuilder.build();
         UserTaskCodegen userTaskCodegen = new UserTaskCodegen(context, Collections.emptyList());
         context.setApplicationProperty(CodegenUtil.generatorProperty(userTaskCodegen, CodegenUtil.TRANSACTION_ENABLED), "true");
-        CompilationUnit compilationUnit = StaticJavaParser.parse(new String(userTaskCodegen.generateRestEndpiont().contents()));
-        List<MethodDeclaration> restEndpoints = compilationUnit.findAll(MethodDeclaration.class).stream().filter(MethodDeclaration::isPublic).toList();
+        CompilationUnit compilationUnit = StaticJavaParser.parse(new String(userTaskCodegen.generateRestEndpoint().contents()));
+        Collection<MethodDeclaration> restEndpoints = getRestMethods(compilationUnit, context);
         assertThat(restEndpoints).isNotEmpty();
         for (MethodDeclaration method : restEndpoints) {
             assertThat(findAnnotationExpr(method, context.getDependencyInjectionAnnotator().getTransactionalAnnotation())).isPresent();
@@ -273,12 +348,82 @@ class ProcessResourceGeneratorTest {
         KogitoBuildContext context = contextBuilder.build();
         UserTaskCodegen userTaskCodegen = new UserTaskCodegen(context, Collections.emptyList());
         context.setApplicationProperty(CodegenUtil.generatorProperty(userTaskCodegen, CodegenUtil.TRANSACTION_ENABLED), "true");
-        CompilationUnit compilationUnit = StaticJavaParser.parse(new String(userTaskCodegen.generateRestEndpiont().contents()));
-        List<MethodDeclaration> restEndpoints = compilationUnit.findAll(MethodDeclaration.class).stream().filter(MethodDeclaration::isPublic).toList();
+        CompilationUnit compilationUnit = StaticJavaParser.parse(new String(userTaskCodegen.generateRestEndpoint().contents()));
+        Collection<MethodDeclaration> restEndpoints = getRestMethods(compilationUnit, context);
         assertThat(restEndpoints).isNotEmpty();
         for (MethodDeclaration method : restEndpoints) {
             assertThat(findAnnotationExpr(method, context.getDependencyInjectionAnnotator().getTransactionalAnnotation())).isPresent();
         }
+    }
+
+    @ParameterizedTest
+    @MethodSource("org.kie.kogito.codegen.api.utils.KogitoContextTestUtils#restContextBuilders")
+    void testUserTaskFaultToleranceDisabled(KogitoBuildContext.Builder contextBuilder) {
+        // Not relevant for the test, just to avoid validation failure
+        contextBuilder
+                .withClassAvailabilityResolver(
+                        mockClassAvailabilityResolver(List.of(QuarkusFaultToleranceAnnotator.RETRY_ANNOTATION, SpringBootFaultToleranceAnnotator.RETRY_ANNOTATION), emptyList()));
+
+        KogitoBuildContext context = contextBuilder.build();
+        UserTaskCodegen userTaskCodegen = new UserTaskCodegen(context, Collections.emptyList());
+
+        CompilationUnit compilationUnit = StaticJavaParser.parse(new String(userTaskCodegen.generateRestEndpoint().contents()));
+
+        Collection<MethodDeclaration> restEndpoints = getRestMethods(compilationUnit, context);
+        assertThat(restEndpoints).isNotEmpty();
+
+        testFaultToleranceAnnotationPresent(restEndpoints, context, false);
+    }
+
+    @ParameterizedTest
+    @MethodSource("org.kie.kogito.codegen.api.utils.KogitoContextTestUtils#restContextBuilders")
+    void testUserTaskFaultToleranceEnabledWithoutFaultToleranceFramework(KogitoBuildContext.Builder contextBuilder) {
+        KogitoBuildContext context = contextBuilder.build();
+        UserTaskCodegen userTaskCodegen = new UserTaskCodegen(context, Collections.emptyList());
+        context.setApplicationProperty(CodegenUtil.generatorProperty(userTaskCodegen, FaultToleranceUtil.FAULT_TOLERANCE_ENABLED), "true");
+        assertThatThrownBy(userTaskCodegen::generateRestEndpoint)
+                .isInstanceOf(ProcessCodegenException.class)
+                .hasMessageContaining("Initializing Kogito Fault Tolerance Annotator but no Fault Tolerance framework is available");
+
+    }
+
+    @ParameterizedTest
+    @MethodSource("org.kie.kogito.codegen.api.utils.KogitoContextTestUtils#restContextBuilders")
+    void testUserTaskFaultToleranceEnabled(KogitoBuildContext.Builder contextBuilder) {
+        // Not relevant for the test, just to avoid validation failure
+        contextBuilder
+                .withClassAvailabilityResolver(
+                        mockClassAvailabilityResolver(List.of(QuarkusFaultToleranceAnnotator.RETRY_ANNOTATION, SpringBootFaultToleranceAnnotator.RETRY_ANNOTATION), emptyList()));
+        KogitoBuildContext context = contextBuilder.build();
+        UserTaskCodegen userTaskCodegen = new UserTaskCodegen(context, Collections.emptyList());
+        context.setApplicationProperty(CodegenUtil.generatorProperty(userTaskCodegen, FaultToleranceUtil.FAULT_TOLERANCE_ENABLED), "true");
+
+        CompilationUnit compilationUnit = StaticJavaParser.parse(new String(userTaskCodegen.generateRestEndpoint().contents()));
+
+        Collection<MethodDeclaration> restEndpoints = getRestMethods(compilationUnit, context);
+
+        assertThat(restEndpoints).isNotEmpty();
+
+        testFaultToleranceAnnotationPresent(restEndpoints, context, true);
+    }
+
+    protected void testFaultToleranceAnnotationPresent(Collection<MethodDeclaration> restEndpoints, KogitoBuildContext context, boolean shouldAnnotationBeThere) {
+        FaultToleranceAnnotator faultToleranceAnnotator = FaultToleranceUtil.lookFaultToleranceAnnotatorForContext(context);
+
+        for (MethodDeclaration method : restEndpoints) {
+            if (shouldAnnotationBeThere) {
+                assertThat(findAnnotationExpr(method, faultToleranceAnnotator.getRetryAnnotationName())).isPresent();
+            } else {
+                assertThat(findAnnotationExpr(method, faultToleranceAnnotator.getRetryAnnotationName())).isNotPresent();
+            }
+        }
+    }
+
+    protected Collection<MethodDeclaration> getRestMethods(CompilationUnit compilationUnit, KogitoBuildContext context) {
+        RestAnnotator restAnnotator = context.getRestAnnotator();
+        return compilationUnit.findAll(MethodDeclaration.class).stream()
+                .filter(restAnnotator::isRestAnnotated)
+                .collect(Collectors.toList());
     }
 
     Optional<AnnotationExpr> findAnnotationExpr(MethodDeclaration method, String fqn) {
@@ -331,18 +476,24 @@ class ProcessResourceGeneratorTest {
 
     private CompilationUnit getCompilationUnit(KogitoBuildContext.Builder contextBuilder,
             KogitoWorkflowProcess process) {
-        ProcessResourceGenerator processResourceGenerator = getProcessResourceGenerator(contextBuilder, process, true);
+        ProcessResourceGenerator processResourceGenerator = getProcessResourceGenerator(contextBuilder, process, true, false);
         return StaticJavaParser.parse(processResourceGenerator.generate());
     }
 
     private ProcessResourceGenerator getProcessResourceGenerator(KogitoBuildContext.Builder contextBuilder,
             String fileName, boolean withTransaction) {
-        return getProcessResourceGenerator(contextBuilder, parseProcess(fileName), withTransaction);
+        return getProcessResourceGenerator(contextBuilder, parseProcess(fileName), withTransaction, false);
+    }
+
+    private ProcessResourceGenerator getProcessResourceGenerator(KogitoBuildContext.Builder contextBuilder,
+            String fileName, boolean withTransaction, boolean wihtFaultTolerance) {
+        return getProcessResourceGenerator(contextBuilder, parseProcess(fileName), withTransaction, wihtFaultTolerance);
     }
 
     private ProcessResourceGenerator getProcessResourceGenerator(KogitoBuildContext.Builder contextBuilder,
             KogitoWorkflowProcess process,
-            boolean withTransaction) {
+            boolean withTransaction,
+            boolean withFaultTolerance) {
         KogitoBuildContext context = createContext(contextBuilder);
 
         ProcessExecutableModelGenerator execModelGen =
@@ -361,7 +512,8 @@ class ProcessResourceGeneratorTest {
         toReturn
                 .withSignals(metaData.getSignals())
                 .withTriggers(metaData.isStartable(), metaData.isDynamic(), metaData.getTriggers())
-                .withTransaction(withTransaction);
+                .withTransaction(withTransaction)
+                .withFaultTolerance(withFaultTolerance);
         return toReturn;
     }
 

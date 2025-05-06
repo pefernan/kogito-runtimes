@@ -69,6 +69,7 @@ import com.github.javaparser.ast.type.Type;
 
 import static com.github.javaparser.StaticJavaParser.parse;
 import static org.kie.kogito.codegen.core.CodegenUtils.interpolateTypes;
+import static org.kie.kogito.codegen.faultTolerance.FaultToleranceUtil.annotateWithFaultTolerance;
 import static org.kie.kogito.internal.utils.ConversionUtils.sanitizeClassName;
 import static org.kie.kogito.internal.utils.ConversionUtils.sanitizeJavaName;
 
@@ -102,6 +103,7 @@ public class ProcessResourceGenerator {
     private boolean startable;
     private boolean dynamic;
     private boolean transactionEnabled;
+    private boolean faultToleranceEnabled;
     private List<TriggerMetaData> triggers;
 
     private List<WorkItemModelMetaData> workItems;
@@ -148,6 +150,11 @@ public class ProcessResourceGenerator {
 
     public ProcessResourceGenerator withTransaction(boolean transactionEnabled) {
         this.transactionEnabled = transactionEnabled;
+        return this;
+    }
+
+    public ProcessResourceGenerator withFaultTolerance(boolean faultToleranceEnabled) {
+        this.faultToleranceEnabled = faultToleranceEnabled;
         return this;
     }
 
@@ -240,6 +247,8 @@ public class ProcessResourceGenerator {
         enableValidation(template);
 
         manageTransactional(toReturn);
+
+        manageFaultTolerance(toReturn);
 
         template.getMembers().sort(new BodyDeclarationComparator());
         return toReturn;
@@ -414,6 +423,12 @@ public class ProcessResourceGenerator {
             DependencyInjectionAnnotator dependencyInjectionAnnotator = context.getDependencyInjectionAnnotator();
             getRestMethods(compilationUnit)
                     .forEach(dependencyInjectionAnnotator::withTransactional);
+        }
+    }
+
+    protected void manageFaultTolerance(CompilationUnit compilationUnit) {
+        if (faultToleranceEnabled && context.hasRest() && !isServerless()) {
+            annotateWithFaultTolerance(compilationUnit, context);
         }
     }
 
